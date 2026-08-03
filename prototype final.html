@@ -1,0 +1,1630 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>TET — Gestion de Maintenance Industrielle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+:root {
+  /* Design Épuré - Fond Blanc Lumineux */
+  --bg: #FAFAFA;
+  --bg2: #FFFFFF;
+  --bg3: #F4F4F5;
+  --bg4: #E4E4E7;
+  --border: #E4E4E7;
+  --border2: #D4D4D8;
+  --text: #18181B;
+  --text2: #52525B;
+  --text3: #71717A;
+  --accent: #2563EB;
+  --accent2: #1D4ED8;
+  --accent-glow: rgba(37,99,235,0.08);
+  --red: #DC2626;
+  --red-bg: #FEF2F2;
+  --orange: #D97706;
+  --orange-bg: #FFFBEB;
+  --blue: #2563EB;
+  --blue-bg: #EFF6FF;
+  --green: #16A34A;
+  --green-bg: #F0FDF4;
+  --yellow: #CA8A04;
+  --yellow-bg: #FEFCE8;
+  --font: 'Inter', sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+  --radius: 6px;
+  --radius-lg: 8px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
+  
+  /* Dimensions Mobiles */
+  --topbar-h: 52px;
+  --botnav-h: 60px;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-t: env(safe-area-inset-top, 0px);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; overflow: hidden; font-size: 13px; }
+
+/* ── INTERFACE SWITCHER ── */
+.view-toggle {
+  position: fixed; top: 10px; right: 10px; z-index: 200;
+  padding: 6px 12px; background: var(--text); color: var(--bg2);
+  border: none; border-radius: var(--radius); font-size: 11px; font-weight: 600;
+  cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: var(--shadow);
+}
+
+/* ── MODE PC & MOBILE (DYNAMIQUE) ── */
+body.mode-mobile .sidebar { display: none !important; }
+body.mode-mobile .botnav { display: flex !important; }
+body.mode-mobile .topbar .av-btn { display: flex !important; }
+body.mode-mobile .main .content { padding: 14px 12px calc(20px + var(--botnav-h) + var(--safe-b)); }
+body.mode-mobile .kgrid { grid-template-columns: repeat(2,1fr) !important; gap: 10px; }
+body.mode-mobile .grid2, body.mode-mobile .grid3 { grid-template-columns: 1fr !important; gap: 12px; }
+
+/* ── LOGIN ── */
+#login-screen {
+  position: fixed; inset: 0; background: var(--bg);
+  display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px;
+}
+.login-box {
+  width: 100%; max-width: 360px; background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 32px 24px; box-shadow: var(--shadow);
+}
+.login-logo { text-align: center; margin-bottom: 24px; }
+.login-logo .logo-mark {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 48px; height: 48px; background: var(--text); border-radius: var(--radius-lg);
+  font-size: 20px; font-weight: 700; color: var(--bg2); letter-spacing: -0.5px;
+  margin-bottom: 12px;
+}
+.login-logo h1 { font-size: 20px; font-weight: 700; color: var(--text); letter-spacing: -0.5px; }
+.login-logo p { font-size: 12px; color: var(--text2); margin-top: 4px; }
+.login-role-tabs { display: flex; gap: 5px; margin-bottom: 20px; }
+.role-tab {
+  flex: 1; padding: 9px 2px; border-radius: var(--radius); border: 1px solid var(--border);
+  background: var(--bg); color: var(--text2); font-size: 11px; cursor: pointer;
+  text-align: center; transition: all .15s; font-weight: 500;
+}
+.role-tab.active { background: var(--bg2); border-color: var(--text); color: var(--text); font-weight: 600; }
+.lfield { margin-bottom: 14px; }
+.lfield label { display: block; font-size: 11px; font-weight: 500; color: var(--text2); margin-bottom: 5px; }
+.lfield input {
+  width: 100%; padding: 10px 12px; background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius); color: var(--text); font-size: 13px; font-family: var(--font);
+}
+.lfield input:focus { outline: none; border-color: var(--text3); }
+.btn-login {
+  width: 100%; padding: 11px; background: var(--text); border: none; border-radius: var(--radius);
+  color: var(--bg2); font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 6px;
+  transition: opacity .15s;
+}
+.btn-login:hover { opacity: .9; }
+.login-hint { font-size: 11px; color: var(--text3); text-align: center; margin-top: 14px; }
+
+/* ── APP LAYOUT ── */
+#app { display: flex; height: 100vh; display: none; }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: 230px; background: var(--bg2); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; flex-shrink: 0; overflow: hidden;
+}
+.sidebar-logo {
+  padding: 18px 16px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+}
+.logo-mark-sm {
+  width: 30px; height: 30px; background: var(--text); border-radius: var(--radius);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; color: var(--bg2); flex-shrink: 0;
+}
+.logo-text { font-size: 15px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
+.logo-sub { font-size: 10px; color: var(--text3); margin-top: 1px; }
+.nav-section {
+  padding: 16px 16px 4px; font-size: 10px; font-weight: 700;
+  color: var(--text3); letter-spacing: .05em; text-transform: uppercase;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 10px; padding: 8px 16px;
+  cursor: pointer; font-size: 13px; color: var(--text2); border-radius: 0;
+  transition: all .1s; position: relative; font-weight: 500;
+}
+.nav-item:hover { background: var(--bg3); color: var(--text); }
+.nav-item.active { background: var(--bg3); color: var(--accent); font-weight: 600; }
+.nav-item.active::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px; background: var(--accent);
+}
+.nav-item i { font-size: 16px; color: var(--text3); }
+.nav-item.active i { color: var(--accent); }
+.nav-badge {
+  margin-left: auto; font-size: 10px; background: var(--red-bg); color: var(--red);
+  padding: 1px 5px; border-radius: 4px; font-weight: 600;
+}
+.sidebar-bottom {
+  margin-top: auto; padding: 12px 16px; border-top: 1px solid var(--border); background: var(--bg);
+}
+.user-card { display: flex; align-items: center; gap: 10px; }
+.user-av {
+  width: 28px; height: 28px; border-radius: 50%; background: var(--blue-bg);
+  border: 1px solid var(--border2); display: flex; align-items: center;
+  justify-content: center; font-size: 11px; font-weight: 600; color: var(--accent); flex-shrink: 0;
+}
+.user-name { font-size: 12px; font-weight: 600; color: var(--text); }
+.user-role { font-size: 11px; color: var(--text3); }
+.btn-logout {
+  margin-left: auto; background: none; border: none; color: var(--text3);
+  cursor: pointer; font-size: 15px; padding: 4px;
+}
+.btn-logout:hover { color: var(--red); }
+
+/* ── MAIN ── */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+.topbar {
+  background: var(--bg2); border-bottom: 1px solid var(--border);
+  padding: 0 16px; height: var(--topbar-h); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+}
+.topbar-left { display: flex; align-items: center; gap: 8px; }
+.page-title { font-size: 14px; font-weight: 600; color: var(--text); }
+.topbar-right { display: flex; align-items: center; gap: 8px; }
+.notif-btn, .icon-btn {
+  width: 32px; height: 32px; background: transparent; border: 1px solid var(--border);
+  border-radius: var(--radius); display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--text2); font-size: 15px; position: relative;
+}
+.notif-btn:hover, .icon-btn:hover { background: var(--bg3); }
+.notif-dot {
+  position: absolute; top: 7px; right: 7px; width: 6px; height: 6px;
+  background: var(--red); border-radius: 50%;
+}
+.av-btn {
+  width: 30px; height: 30px; border-radius: 50%; background: var(--blue-bg);
+  border: 1px solid var(--border2); display: none; align-items: center;
+  justify-content: center; font-size: 11px; font-weight: 600; color: var(--accent); flex-shrink: 0;
+}
+.content { flex: 1; overflow-y: auto; padding: 20px; }
+.page { display: none; }
+.page.active { display: block; }
+
+/* ── BOTTOM NAV (MOBILE) ── */
+.botnav {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+  height: calc(var(--botnav-h) + var(--safe-b)); padding-bottom: var(--safe-b);
+  background: var(--bg2); border-top: 1px solid var(--border);
+  display: none; align-items: stretch;
+}
+.bn-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 2px; color: var(--text3); cursor: pointer; font-size: 10px; font-weight: 500; position: relative;
+  border: none; background: none; font-family: var(--font);
+}
+.bn-item i { font-size: 18px; }
+.bn-item.active { color: var(--accent); font-weight: 600; }
+.bn-badge {
+  position: absolute; top: 4px; right: calc(50% - 16px); min-width: 14px; height: 14px; padding: 0 3px;
+  background: var(--red); color: white; border-radius: 50%; font-size: 8px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ── DRAWERS / SHEETS (MOBILE) ── */
+.sheet-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.2); z-index: 40; opacity: 0;
+  pointer-events: none; transition: opacity .2s;
+}
+.sheet-backdrop.visible { opacity: 1; pointer-events: auto; }
+.sheet {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 41;
+  background: var(--bg2); border-top: 1px solid var(--border);
+  border-radius: 12px 12px 0 0; padding: 6px 0 calc(12px + var(--safe-b));
+  transform: translateY(100%); transition: transform .2s ease-out;
+  max-height: 80vh; overflow-y: auto;
+}
+.sheet.visible { transform: translateY(0); }
+.sheet-handle { width: 32px; height: 4px; background: var(--border2); border-radius: 2px; margin: 4px auto 8px; }
+.sheet-section { padding: 4px 16px; font-size: 10px; font-weight: 700; color: var(--text3); text-transform: uppercase; }
+.sheet-item { display: flex; align-items: center; gap: 12px; padding: 10px 16px; cursor: pointer; color: var(--text2); font-size: 13px; }
+.sheet-item i { font-size: 16px; width: 18px; text-align: center; color: var(--text3); }
+.sheet-item.active { color: var(--accent); font-weight: 600; }
+.sheet-user {
+  display: flex; align-items: center; gap: 10px; padding: 12px 16px; margin: 6px 12px;
+  background: var(--bg3); border-radius: var(--radius);
+}
+
+/* ── KPI CARDS ── */
+.kgrid { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 20px; }
+.kcard {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: 16px; position: relative; overflow: hidden; box-shadow: var(--shadow);
+}
+.kcard-icon {
+  width: 32px; height: 32px; border-radius: var(--radius); display: flex;
+  align-items: center; justify-content: center; font-size: 16px; margin-bottom: 10px;
+}
+.kcard.red .kcard-icon { background: var(--red-bg); color: var(--red); }
+.kcard.orange .kcard-icon { background: var(--orange-bg); color: var(--orange); }
+.kcard.blue .kcard-icon { background: var(--blue-bg); color: var(--accent); }
+.kcard.green .kcard-icon { background: var(--green-bg); color: var(--green); }
+.kcard-label { font-size: 11px; font-weight: 500; color: var(--text2); margin-bottom: 4px; }
+.kcard-val { font-size: 22px; font-weight: 700; color: var(--text); font-family: var(--mono); letter-spacing: -0.5px; }
+.kcard-sub { font-size: 11px; margin-top: 4px; font-weight: 500; }
+.kcard.red .kcard-sub { color: var(--red); }
+.kcard.orange .kcard-sub { color: var(--orange); }
+.kcard.blue .kcard-sub { color: var(--accent); }
+.kcard.green .kcard-sub { color: var(--green); }
+
+/* ── CARDS & SECTIONS ── */
+.card {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: 16px; margin-bottom: 16px; box-shadow: var(--shadow);
+}
+.card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.card-title { font-size: 13px; font-weight: 600; color: var(--text); }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+
+/* ── LIST LINES / ROWS ── */
+.row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.row:last-child { border-bottom: none; padding-bottom: 0; }
+.dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.dc { background: var(--red); }
+.du { background: var(--orange); }
+.dn { background: var(--accent); }
+.dl { background: var(--green); }
+.rinfo { flex: 1; min-width: 0; }
+.rtitle { font-size: 13px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rmeta { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+/* ── MINIMAL BADGES ── */
+.badge {
+  font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 4px;
+  white-space: nowrap; display: inline-flex; align-items: center;
+}
+.bd { background: var(--red-bg); color: var(--red); }
+.bw { background: var(--orange-bg); color: var(--orange); }
+.bi { background: var(--blue-bg); color: var(--accent); }
+.bs { background: var(--green-bg); color: var(--green); }
+.by { background: var(--yellow-bg); color: var(--yellow); }
+
+/* ── AVATARS ── */
+.av {
+  width: 28px; height: 28px; border-radius: 50%; display: flex;
+  align-items: center; justify-content: center; font-size: 10px; font-weight: 600; flex-shrink: 0;
+}
+.avi { background: var(--blue-bg); color: var(--accent); border: 1px solid var(--border); }
+.avs { background: var(--green-bg); color: var(--green); border: 1px solid var(--border); }
+.avw { background: var(--orange-bg); color: var(--orange); border: 1px solid var(--border); }
+
+/* ── SIMPLIFIED BUTTONS ── */
+.btn {
+  display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px;
+  border-radius: var(--radius); font-size: 12px; font-weight: 500; cursor: pointer;
+  border: 1px solid var(--border2); background: var(--bg2); color: var(--text2);
+  font-family: var(--font); transition: all .1s;
+}
+.btn:hover { background: var(--bg3); color: var(--text); }
+.btn-p { background: var(--text); border-color: transparent; color: var(--bg2); font-weight: 600; }
+.btn-p:hover { opacity: 0.9; color: var(--bg2); }
+.btn-ai { background: var(--blue-bg); border-color: transparent; color: var(--accent); font-weight: 600; }
+.btn-ai:hover { background: var(--accent); color: white; }
+.btn-danger { background: var(--red-bg); border-color: transparent; color: var(--red); }
+.btn-sm { padding: 4px 8px; font-size: 11px; }
+.btn-del { background: none; border: none; color: var(--text3); cursor: pointer; }
+.btn-del:hover { color: var(--red); }
+
+/* ── FORMS ── */
+.fgrp { margin-bottom: 12px; }
+.flabel { display: block; font-size: 11px; font-weight: 600; color: var(--text2); margin-bottom: 5px; }
+.fc {
+  width: 100%; padding: 8px 10px; background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius); color: var(--text); font-size: 13px; font-family: var(--font);
+}
+.fc:focus { outline: none; border-color: var(--text3); }
+textarea.fc { resize: vertical; min-height: 70px; }
+.fc::placeholder { color: var(--text3); }
+
+/* ── INTEGRATION IA ── */
+.ai-box {
+  background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: 12px; margin-top: 12px; display: none;
+}
+.ai-box.visible { display: block; }
+.ai-thinking { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--accent); }
+.ai-result { font-size: 12px; color: var(--text); line-height: 1.6; margin-top: 8px; display: none; white-space: pre-wrap; }
+.ai-result.visible { display: block; }
+.ai-header { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--accent); font-weight: 600; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+.dots span { display: inline-block; animation: blink 1.2s infinite; }
+.dots span:nth-child(2) { animation-delay: .2s; }
+.dots span:nth-child(3) { animation-delay: .4s; }
+@keyframes blink { 0%,80%,100%{opacity:0;} 40%{opacity:1;} }
+
+.ok-msg {
+  display: none; background: var(--green-bg); color: var(--green);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 8px 12px; font-size: 12px; margin-top: 10px; align-items: center; gap: 6px;
+}
+.ok-msg.visible { display: flex; }
+
+/* ── STOCK LINEAR BAR ── */
+.sbar { height: 4px; border-radius: 2px; background: var(--bg4); width: 70px; margin-top: 4px; }
+.sbar-fill { height: 100%; border-radius: 2px; }
+
+/* ── CLEAN TABLES ── */
+.tbl { width: 100%; border-collapse: collapse; }
+.tbl th {
+  font-size: 11px; font-weight: 600; color: var(--text3); text-align: left;
+  padding: 8px 10px; border-bottom: 1px solid var(--border); text-transform: uppercase; letter-spacing: 0.3px;
+}
+.tbl td { font-size: 12px; color: var(--text); padding: 10px 10px; border-bottom: 1px solid var(--border); }
+.tbl tr:last-child td { border-bottom: none; }
+.tbl tr:hover td { background: var(--bg3); }
+
+/* ── CARDS D'ÉQUIPEMENT (MACHINES) ── */
+.mcard {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: 14px; display: flex; align-items: center; gap: 12px; position: relative; box-shadow: var(--shadow);
+}
+.mcard-icon {
+  width: 34px; height: 34px; border-radius: var(--radius); background: var(--bg3);
+  display: flex; align-items: center; justify-content: center; font-size: 16px;
+  color: var(--text); flex-shrink: 0;
+}
+.mcard-info { flex: 1; }
+.mcard-name { font-size: 13px; font-weight: 600; color: var(--text); }
+.mcard-meta { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.mcard-actions { position: absolute; top: 12px; right: 12px; }
+
+/* ── CONFIGURATION PRIORITÉS ── */
+.priority-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 8px; margin-bottom: 12px; }
+.priority-opt {
+  padding: 8px 10px; border-radius: var(--radius); border: 1px solid var(--border);
+  background: var(--bg2); cursor: pointer; transition: all .1s;
+}
+.priority-opt:hover { background: var(--bg3); }
+.priority-opt.selected-c { background: var(--red-bg); border-color: var(--red); }
+.priority-opt.selected-u { background: var(--orange-bg); border-color: var(--orange); }
+.priority-opt.selected-n { background: var(--blue-bg); border-color: var(--accent); }
+.priority-opt.selected-l { background: var(--green-bg); border-color: var(--green); }
+.popt-top { display: flex; align-items: center; gap: 5px; margin-bottom: 2px; }
+.popt-label { font-size: 12px; font-weight: 600; }
+.popt-desc { font-size: 10px; color: var(--text3); }
+
+/* ── ASSISTANT DISCUSSION / CHAT ── */
+.chat-area { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; min-height: 180px; }
+.chat-msg { max-width: 85%; }
+.chat-msg.user { align-self: flex-end; }
+.chat-msg.ai { align-self: flex-start; }
+.chat-bubble { padding: 10px 12px; border-radius: var(--radius-lg); font-size: 12.5px; line-height: 1.5; }
+.chat-msg.user .chat-bubble { background: var(--text); color: var(--bg2); }
+.chat-msg.ai .chat-bubble { background: var(--bg3); color: var(--text); }
+.chat-time { font-size: 10px; color: var(--text3); margin-top: 4px; padding: 0 2px; }
+.chat-msg.user .chat-time { text-align: right; }
+.chat-input-area {
+  display: flex; gap: 6px; background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 8px 10px; align-items: center;
+}
+.chat-input {
+  flex: 1; background: none; border: none; color: var(--text); font-size: 13px;
+  font-family: var(--font); resize: none; outline: none; max-height: 80px; line-height: 1.4;
+}
+.chat-send {
+  width: 30px; height: 30px; background: var(--text); border: none; border-radius: var(--radius);
+  color: var(--bg2); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0;
+}
+.quick-btns { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.quick-btn {
+  font-size: 11px; padding: 4px 10px; border-radius: 14px;
+  border: 1px solid var(--border); background: var(--bg2); color: var(--text2); cursor: pointer;
+}
+.quick-btn:hover { background: var(--bg3); color: var(--text); }
+
+.api-key-banner {
+  background: var(--yellow-bg); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 8px 12px; margin-bottom: 12px;
+  display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--yellow);
+}
+.api-key-banner a { color: var(--accent); text-decoration: underline; }
+.api-key-input-row { display: flex; gap: 6px; }
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+.stat-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.stat-row:last-child { border-bottom: none; }
+.stat-label { font-size: 12px; color: var(--text); flex: 1; }
+.stat-val { font-size: 12px; font-weight: 600; color: var(--text); font-family: var(--mono); }
+</style>
+</head>
+<body>
+
+<!-- Bouton pour tester l'adaptation PC / Mobile instantanément -->
+<button class="view-toggle" onclick="toggleViewMode()"><i class="ti ti-device-mobile"></i> Version Desktop/Mobile</button>
+
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="logo-mark">TET</div>
+      <h1>TET</h1>
+      <p>Gestion de Maintenance Industrielle</p>
+    </div>
+    <div class="login-role-tabs">
+      <div class="role-tab active" onclick="selectRole('superviseur',this)">
+        <i class="ti ti-shield-check"></i> Superviseur
+      </div>
+      <div class="role-tab" onclick="selectRole('technicien',this)">
+        <i class="ti ti-tools"></i> Technicien
+      </div>
+      <div class="role-tab" onclick="selectRole('magasinier',this)">
+        <i class="ti ti-package"></i> Magasinier
+      </div>
+    </div>
+    <div class="lfield">
+      <label>Nom d'utilisateur</label>
+      <input type="text" id="login-user" placeholder="Ex: yacine.chems" value="yacine.chems">
+    </div>
+    <div class="lfield">
+      <label>Mot de passe</label>
+      <input type="password" id="login-pass" placeholder="••••••••" value="••••••••">
+    </div>
+    <button class="btn-login" onclick="doLogin()">Se connecter →</button>
+    <div class="login-hint">Demo : n'importe quel identifiant fonctionne</div>
+  </div>
+</div>
+
+<div id="app">
+  <!-- Structure Sidebar (Visible sur Écran PC) -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark-sm">T</div>
+      <div>
+        <div class="logo-text">TET</div>
+        <div class="logo-sub">Maintenance Industrielle</div>
+      </div>
+    </div>
+    <div class="nav-section" id="nav-section-general">Général</div>
+    <div class="nav-item active nav-superviseur-only" data-roles="superviseur" onclick="nav('dashboard',this)"><i class="ti ti-layout-dashboard"></i>Dashboard</div>
+    <div class="nav-item nav-superviseur-only" data-roles="superviseur" onclick="nav('tasks',this)"><i class="ti ti-clipboard-list"></i>Tâches<span class="nav-badge" id="task-badge">5</span></div>
+    <div class="nav-section">Terrain</div>
+    <div class="nav-item" data-roles="superviseur,technicien" onclick="nav('signal',this)"><i class="ti ti-alert-triangle"></i>Signaler un problème</div>
+    <div class="nav-item" data-roles="superviseur,technicien" onclick="nav('report',this)"><i class="ti ti-file-description"></i>Rapport d'intervention</div>
+    <div class="nav-section">Ressources</div>
+    <div class="nav-item" data-roles="superviseur,technicien,magasinier" onclick="nav('machines',this)"><i class="ti ti-settings-2"></i>Machines</div>
+    <div class="nav-item" data-roles="superviseur,technicien,magasinier" onclick="nav('stock',this)"><i class="ti ti-package"></i>Stock pièces<span class="nav-badge" id="stock-badge">7</span></div>
+    <div class="nav-section">Intelligence IA</div>
+    <div class="nav-item" data-roles="superviseur,technicien,magasinier" onclick="nav('ia',this)"><i class="ti ti-robot"></i>Assistant IA</div>
+    <div class="nav-item" data-roles="superviseur,technicien" onclick="nav('settings',this)"><i class="ti ti-settings"></i>Paramètres</div>
+    <div class="sidebar-bottom">
+      <div class="user-card">
+        <div class="user-av" id="sidebar-av">YC</div>
+        <div>
+          <div class="user-name" id="sidebar-name">Yacine Chems</div>
+          <div class="user-role" id="sidebar-role">Superviseur</div>
+        </div>
+        <button class="btn-logout" onclick="logout()" title="Déconnexion"><i class="ti ti-logout"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="av-btn" id="mobile-av" onclick="openMobileMenu()">YC</div>
+        <span class="page-title" id="ptitle">Dashboard</span>
+      </div>
+      <div class="topbar-right">
+        <div class="notif-btn"><i class="ti ti-bell"></i><div class="notif-dot"></div></div>
+        <div class="notif-btn"><i class="ti ti-search"></i></div>
+        <div style="font-size:11px;color:var(--text2);" id="top-date"></div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- DASHBOARD PAGE -->
+      <div class="page active" id="page-dashboard">
+        <div class="kgrid">
+          <div class="kcard red">
+            <div class="kcard-icon"><i class="ti ti-alert-circle"></i></div>
+            <div class="kcard-label">Pannes ce mois</div>
+            <div class="kcard-val">24</div>
+            <div class="kcard-sub"><i class="ti ti-arrow-up" style="font-size:10px"></i> +3 vs mois dernier</div>
+          </div>
+          <div class="kcard orange">
+            <div class="kcard-icon"><i class="ti ti-loader"></i></div>
+            <div class="kcard-label">Interventions en cours</div>
+            <div class="kcard-val">7</div>
+            <div class="kcard-sub">3 urgentes · 4 normales</div>
+          </div>
+          <div class="kcard blue">
+            <div class="kcard-icon"><i class="ti ti-clock"></i></div>
+            <div class="kcard-label">Temps moyen réparation</div>
+            <div class="kcard-val">2h18</div>
+            <div class="kcard-sub"><i class="ti ti-arrow-down" style="font-size:10px"></i> −22 min vs mois dernier</div>
+          </div>
+          <div class="kcard green">
+            <div class="kcard-icon"><i class="ti ti-users"></i></div>
+            <div class="kcard-label">Techniciens disponibles</div>
+            <div class="kcard-val" id="kpi-tech-val">3/5</div>
+            <div class="kcard-sub" id="kpi-tech-sub">5 actifs au total</div>
+          </div>
+        </div>
+
+        <div class="grid2">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Interventions récentes</span>
+              <span class="badge bi">Aujourd'hui</span>
+            </div>
+            <div class="row"><div class="dot dc"></div><div class="rinfo"><div class="rtitle">Pompe hydraulique P-03 bloquée</div><div class="rmeta">Atelier A · Karim B. · Il y a 1h</div></div><span class="badge bd">Critique</span></div>
+            <div class="row"><div class="dot du"></div><div class="rinfo"><div class="rtitle">Courroie convoyeur C-12 usée</div><div class="rmeta">Atelier B · Yacine M. · Il y a 3h</div></div><span class="badge bw">Urgent</span></div>
+            <div class="row"><div class="dot dn"></div><div class="rinfo"><div class="rtitle">Révision préventive moteur M-07</div><div class="rmeta">Atelier C · Sofiane R. · Il y a 5h</div></div><span class="badge bi">Normal</span></div>
+            <div class="row"><div class="dot dl"></div><div class="rinfo"><div class="rtitle">Lubrification paliers L-02</div><div class="rmeta">Atelier A · Karim B. · Terminé 08:45</div></div><span class="badge bs">Terminé</span></div>
+            <div class="row"><div class="dot dl"></div><div class="rinfo"><div class="rtitle">Nettoyage filtre compresseur CP-01</div><div class="rmeta">Atelier B · Amine B. · Terminé hier</div></div><span class="badge bs">Terminé</span></div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Techniciens</span>
+              <span class="badge bs" id="dash-tech-count-badge">5 actifs</span>
+            </div>
+            <div id="tech-list-container">
+              <div class="row"><div class="av avi">KB</div><div class="rinfo"><div class="rtitle">Karim Benali</div><div class="rmeta">En intervention · Atelier A</div></div><span class="badge bw">2 tâches</span></div>
+              <div class="row"><div class="av avs">YM</div><div class="rinfo"><div class="rtitle">Yacine Mansouri</div><div class="rmeta">Disponible</div></div><span class="badge bs">Libre</span></div>
+              <div class="row"><div class="av avw">SR</div><div class="rinfo"><div class="rtitle">Sofiane Rahmani</div><div class="rmeta">En intervention · Atelier C</div></div><span class="badge bi">1 tâche</span></div>
+              <div class="row"><div class="av avs">AB</div><div class="rinfo"><div class="rtitle">Amine Bouzidi</div><div class="rmeta">Disponible — retour dans 30min</div></div><span class="badge bs">Bientôt</span></div>
+              <div class="row"><div class="av avi">MK</div><div class="rinfo"><div class="rtitle">Mourad Khelif</div><div class="rmeta">Congé aujourd'hui</div></div><span class="badge by">Absent</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Machines les plus problématiques ce mois</span>
+            <button class="btn btn-sm" onclick="nav('machines',document.querySelector('[onclick*=machines]'))"><i class="ti ti-arrow-right"></i> Voir tout</button>
+          </div>
+          <table class="tbl">
+            <thead><tr><th>Machine</th><th>Atelier</th><th>Pannes</th><th>Temps arrêt</th><th>Statut</th><th>Action IA</th></tr></thead>
+            <tbody id="dash-machines-tbody">
+              <tr id="dash-m-pompe-p-03"><td>Pompe P-03</td><td>Atelier A</td><td style="color:var(--red);font-weight:600;font-family:var(--mono)">7</td><td>14h30</td><td><span class="badge bd">Critique</span></td><td><button class="btn btn-sm btn-ai" onclick="quickDiag('Pompe P-03 a eu 7 pannes ce mois, temps arrêt 14h30')"><i class="ti ti-robot"></i> Analyser</button></td></tr>
+              <tr id="dash-m-convoyeur-c-12"><td>Convoyeur C-12</td><td>Atelier B</td><td style="color:var(--orange);font-weight:600;font-family:var(--mono)">4</td><td>6h15</td><td><span class="badge bw">Attention</span></td><td><button class="btn btn-sm btn-ai" onclick="quickDiag('Convoyeur C-12 a eu 4 pannes ce mois')"><i class="ti ti-robot"></i> Analyser</button></td></tr>
+              <tr id="dash-m-compresseur-cp-01"><td>Compresseur CP-01</td><td>Atelier A</td><td style="font-weight:600;font-family:var(--mono)">2</td><td>2h00</td><td><span class="badge bi">Normal</span></td><td><button class="btn btn-sm btn-ai" onclick="quickDiag('Compresseur CP-01 a eu 2 pannes ce mois')"><i class="ti ti-robot"></i> Analyser</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TASKS PAGE -->
+      <div class="page" id="page-tasks">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-sm" onclick="filterTasks('all',this)" style="background:var(--bg4);color:var(--text);">Toutes</button>
+            <button class="btn btn-sm" onclick="filterTasks('cours',this)">En cours</button>
+            <button class="btn btn-sm" onclick="filterTasks('attente',this)">En attente</button>
+            <button class="btn btn-sm" onclick="filterTasks('termine',this)">Terminées</button>
+          </div>
+          <button class="btn btn-p btn-sm" onclick="nav('signal',document.querySelector('[onclick*=signal]'))"><i class="ti ti-plus"></i> Tâche</button>
+        </div>
+        <div class="card" style="padding:0;overflow:hidden;">
+          <table class="tbl">
+            <thead><tr><th>Priorité</th><th>Tâche</th><th>Machine</th><th>Technicien</th><th>Démarré</th><th>Statut</th></tr></thead>
+            <tbody id="tasks-tbody">
+              <tr data-status="cours"><td><span class="badge bd">Critique</span></td><td>Pompe hydraulique P-03 bloquée</td><td>P-03 · Atelier A</td><td><div style="display:flex;align-items:center;gap:6px;"><div class="av avi" style="width:20px;height:20px;font-size:9px;">KB</div>Karim B.</div></td><td style="font-family:var(--mono);font-size:11px;">09:14</td><td><span class="badge bw">En cours</span></td></tr>
+              <tr data-status="cours"><td><span class="badge bw">Urgent</span></td><td>Courroie convoyeur C-12 usée</td><td>C-12 · Atelier B</td><td><div style="display:flex;align-items:center;gap:6px;"><div class="av avw" style="width:20px;height:20px;font-size:9px;">YM</div>Yacine M.</div></td><td style="font-family:var(--mono);font-size:11px;">07:30</td><td><span class="badge bw">En cours</span></td></tr>
+              <tr data-status="cours"><td><span class="badge bi">Normal</span></td><td>Révision préventive moteur M-07</td><td>M-07 · Atelier C</td><td><div style="display:flex;align-items:center;gap:6px;"><div class="av avw" style="width:20px;height:20px;font-size:9px;">SR</div>Sofiane R.</div></td><td style="font-family:var(--mono);font-size:11px;">10:00</td><td><span class="badge bw">En cours</span></td></tr>
+              <tr data-status="attente"><td><span class="badge bi">Normal</span></td><td>Vérification capteurs température</td><td>TR-02 · Électrique</td><td><div style="color:var(--text3);font-size:11px;">Non assigné</div></td><td style="font-family:var(--mono);font-size:11px;">—</td><td><span class="badge bi">En attente</span></td></tr>
+              <tr data-status="attente"><td><span class="badge bs">Faible</span></td><td>Mise à jour schémas électriques</td><td>Général</td><td><div style="color:var(--text3);font-size:11px;">Non assigné</div></td><td style="font-family:var(--mono);font-size:11px;">—</td><td><span class="badge bi">En attente</span></td></tr>
+              <tr data-status="termine"><td><span class="badge bs">Faible</span></td><td>Lubrification paliers L-02</td><td>L-02 · Atelier A</td><td><div style="display:flex;align-items:center;gap:6px;"><div class="av avi" style="width:20px;height:20px;font-size:9px;">KB</div>Karim B.</div></td><td style="font-family:var(--mono);font-size:11px;">08:00</td><td><span class="badge bs">Terminé</span></td></tr>
+              <tr data-status="termine"><td><span class="badge bi">Normal</span></td><td>Nettoyage filtre compresseur</td><td>CP-01 · Atelier B</td><td><div style="display:flex;align-items:center;gap:6px;"><div class="av avs" style="width:20px;height:20px;font-size:9px;">AB</div>Amine B.</div></td><td style="font-family:var(--mono);font-size:11px;">Hier</td><td><span class="badge bs">Terminé</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- SIGNAL PAGE -->
+      <div class="page" id="page-signal">
+        <div class="grid2">
+          <div class="card">
+            <div class="card-title" style="margin-bottom:14px;">Signaler un problème</div>
+            <div class="fgrp">
+              <label class="flabel">Machine concernée</label>
+              <select class="fc" id="sig-machine">
+                <option value="">— Sélectionner —</option>
+                <option value="Pompe P-03 · Atelier A">Pompe P-03 · Atelier A</option>
+                <option value="Convoyeur C-12 · Atelier B">Convoyeur C-12 · Atelier B</option>
+                <option value="Moteur M-07 · Atelier C">Moteur M-07 · Atelier C</option>
+                <option value="Compresseur CP-01 · Atelier A">Compresseur CP-01 · Atelier A</option>
+                <option value="Transformateur TR-02 · Électrique">Transformateur TR-02 · Électrique</option>
+              </select>
+            </div>
+            <div class="fgrp">
+              <label class="flabel">Niveau de priorité</label>
+              <div class="priority-grid">
+                <div class="priority-opt selected-c" onclick="selectPriority('c',this)">
+                  <div class="popt-top"><span style="color:var(--red)">●</span><span class="popt-label" style="color:var(--red)">Critique</span></div>
+                  <div class="popt-desc">Arrêt direct production</div>
+                </div>
+                <div class="priority-opt" onclick="selectPriority('u',this)">
+                  <div class="popt-top"><span style="color:var(--orange)">●</span><span class="popt-label" style="color:var(--orange)">Urgent</span></div>
+                  <div class="popt-desc">Risque sous 24h</div>
+                </div>
+                <div class="priority-opt" onclick="selectPriority('n',this)">
+                  <div class="popt-top"><span style="color:var(--accent)">●</span><span class="popt-label" style="color:var(--accent)">Normal</span></div>
+                  <div class="popt-desc">Courant de semaine</div>
+                </div>
+                <div class="priority-opt" onclick="selectPriority('l',this)">
+                  <div class="popt-top"><span style="color:var(--green)">●</span><span class="popt-label" style="color:var(--green)">Faible</span></div>
+                  <div class="popt-desc">Amélioration secondaire</div>
+                </div>
+              </div>
+            </div>
+            <div class="fgrp">
+              <label class="flabel">Description du problème</label>
+              <textarea class="fc" id="sig-desc" placeholder="Symptômes constatés..."></textarea>
+            </div>
+            <div class="fgrp">
+              <label class="flabel">Localisation précise</label>
+              <input class="fc" id="sig-loc" placeholder="Ex: Zone Nord, Palier gauche...">
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <button class="btn btn-p" onclick="submitSignal()"><i class="ti ti-send"></i> Envoyer</button>
+              <button class="btn btn-ai" onclick="diagnoseSignal()"><i class="ti ti-robot"></i> Diag IA</button>
+            </div>
+            <div class="ok-msg" id="sig-ok"><i class="ti ti-circle-check"></i> Signalement transmis au superviseur.</div>
+            <div class="ai-box" id="sig-ai">
+              <div class="ai-header"><i class="ti ti-robot"></i> Diagnostic IA en cours<span class="dots"><span>.</span><span>.</span><span>.</span></span></div>
+              <div class="ai-result" id="sig-ai-result"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title" style="margin-bottom:12px;">Signalements récents</div>
+            <div class="row"><div class="dot dc"></div><div class="rinfo"><div class="rtitle">Pompe P-03 — fuite huile</div><div class="rmeta">Karim B. · Il y a 1h · Atelier A</div></div><span class="badge bd">Critique</span></div>
+            <div class="row"><div class="dot du"></div><div class="rinfo"><div class="rtitle">C-12 — courroie craquelée</div><div class="rmeta">Yacine M. · Il y a 3h · Atelier B</div></div><span class="badge bw">Urgent</span></div>
+            <div class="row"><div class="dot dn"></div><div class="rinfo"><div class="rtitle">CP-01 — bruit inhabituel</div><div class="rmeta">Amine B. · Hier · Atelier A</div></div><span class="badge bi">Normal</span></div>
+            <div class="row"><div class="dot dl"></div><div class="rinfo"><div class="rtitle">TR-02 — voyant jaune allumé</div><div class="rmeta">Sofiane R. · Avant-hier</div></div><span class="badge bs">Traité</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- REPORT PAGE -->
+      <div class="page" id="page-report">
+        <div class="card">
+          <div class="card-title" style="margin-bottom:14px;">Nouveau rapport d'intervention</div>
+          <div class="grid2">
+            <div class="fgrp">
+              <label class="flabel">Machine concernée</label>
+              <select class="fc" id="rep-machine">
+                <option value="Pompe P-03 · Atelier A">Pompe P-03 · Atelier A</option>
+                <option value="Convoyeur C-12 · Atelier B">Convoyeur C-12 · Atelier B</option>
+                <option value="Moteur M-07 · Atelier C">Moteur M-07 · Atelier C</option>
+                <option value="Compresseur CP-01 · Atelier A">Compresseur CP-01 · Atelier A</option>
+              </select>
+            </div>
+            <div class="fgrp">
+              <label class="flabel">Type d'intervention</label>
+              <select class="fc" id="rep-type">
+                <option>Curative (réparation panne)</option>
+                <option>Préventive (révision planifiée)</option>
+                <option>Améliorative</option>
+                <option>Urgence</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid2">
+            <div class="fgrp"><label class="flabel">Début</label><input type="datetime-local" class="fc" id="rep-start" value="2026-06-21T09:00"></div>
+            <div class="fgrp"><label class="flabel">Fin</label><input type="datetime-local" class="fc" id="rep-end" value="2026-06-21T11:30"></div>
+          </div>
+          <div class="fgrp">
+            <label class="flabel">Problème constaté</label>
+            <textarea class="fc" id="rep-problem" placeholder="Mesures, symptômes observés..."></textarea>
+          </div>
+          <div class="fgrp">
+            <label class="flabel">Actions effectuées</label>
+            <textarea class="fc" id="rep-actions" placeholder="Étapes de résolution..."></textarea>
+          </div>
+          <div class="fgrp">
+            <label class="flabel">Pièces utilisées</label>
+            <input class="fc" id="rep-pieces" placeholder="Ex: Joint SKF, Huile HV46 2L...">
+          </div>
+          <div class="fgrp">
+            <label class="flabel">Résultat final</label>
+            <select class="fc" id="rep-result">
+              <option>Machine remise en service — fonctionnement normal</option>
+              <option>Réparation partielle — suivi nécessaire</option>
+              <option>En attente de pièce pour finaliser</option>
+              <option>Machine à remplacer</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button class="btn btn-p" onclick="submitReport()"><i class="ti ti-check"></i> Soumettre</button>
+            <button class="btn btn-ai" onclick="generateReport()"><i class="ti ti-robot"></i> Générer via IA</button>
+          </div>
+          <div class="ok-msg" id="rep-ok"><i class="ti ti-circle-check"></i> Rapport soumis et validé.</div>
+          <div class="ai-box" id="rep-ai">
+            <div class="ai-header"><i class="ti ti-robot"></i> Édition technique automatique<span class="dots"><span>.</span><span>.</span><span>.</span></span></div>
+            <div class="ai-result" id="rep-ai-result"></div>
+            <div id="rep-copy-btn" style="display:none;margin-top:8px;">
+              <button class="btn btn-sm" onclick="copyReport()"><i class="ti ti-copy"></i> Copier</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MACHINES PAGE -->
+      <div class="page" id="page-machines">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <div class="card-title" style="margin:0;">Liste du Parc Machines</div>
+          <button class="btn btn-p btn-sm" onclick="toggleAddForm('form-add-machine')"><i class="ti ti-plus"></i> Ajouter</button>
+        </div>
+
+        <div class="card" id="form-add-machine" style="display:none;border-color:var(--text);">
+          <div class="card-title" style="margin-bottom:12px;">Nouvelle Machine</div>
+          <div class="grid3">
+            <div class="fgrp"><label class="flabel">Nom machine</label><input class="fc" id="new-m-name" placeholder="Ex: Presse P-04"></div>
+            <div class="fgrp"><label class="flabel">Atelier / Zone</label><input class="fc" id="new-m-loc" placeholder="Ex: Atelier A"></div>
+            <div class="fgrp">
+              <label class="flabel">Icône</label>
+              <select class="fc" id="new-m-icon">
+                <option value="ti-droplet">Fluides (Goutte)</option>
+                <option value="ti-arrow-right">Convoyeur (Flèche)</option>
+                <option value="ti-engine">Mécanique (Moteur)</option>
+                <option value="ti-wind">Compresseur (Vent)</option>
+                <option value="ti-bolt">Électrique (Éclair)</option>
+                <option value="ti-settings-2">Général</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;justify-content:flex-end;">
+            <button class="btn btn-sm" onclick="toggleAddForm('form-add-machine')">Annuler</button>
+            <button class="btn btn-p btn-sm" onclick="addMachine()">Enregistrer</button>
+          </div>
+        </div>
+
+        <div class="grid3" id="machines-grid-container">
+          <div class="mcard" id="mcard-pompe-p-03">
+            <div class="mcard-icon"><i class="ti ti-droplet"></i></div>
+            <div class="mcard-info">
+              <div class="mcard-name">Pompe hydraulique P-03</div>
+              <div class="mcard-meta">Atelier A · 7 pannes · Révision : 12/03/26</div>
+              <div style="margin-top:4px;"><span class="badge bd">Critique</span></div>
+            </div>
+            <div class="mcard-actions"><button class="btn-del" onclick="deleteMachine('pompe-p-03', 'Pompe P-03')"><i class="ti ti-trash"></i></button></div>
+          </div>
+          <div class="mcard" id="mcard-convoyeur-c-12">
+            <div class="mcard-icon"><i class="ti ti-arrow-right"></i></div>
+            <div class="mcard-info">
+              <div class="mcard-name">Convoyeur C-12</div>
+              <div class="mcard-meta">Atelier B · 4 pannes · Révision : 01/05/26</div>
+              <div style="margin-top:4px;"><span class="badge bw">Attention</span></div>
+            </div>
+            <div class="mcard-actions"><button class="btn-del" onclick="deleteMachine('convoyeur-c-12', 'Convoyeur C-12')"><i class="ti ti-trash"></i></button></div>
+          </div>
+          <div class="mcard" id="mcard-moteur-m-07">
+            <div class="mcard-icon"><i class="ti ti-engine"></i></div>
+            <div class="mcard-info">
+              <div class="mcard-name">Moteur M-07</div>
+              <div class="mcard-meta">Atelier C · 0 panne · Révision : 15/06/26</div>
+              <div style="margin-top:4px;"><span class="badge bs">Bon état</span></div>
+            </div>
+            <div class="mcard-actions"><button class="btn-del" onclick="deleteMachine('moteur-m-07', 'Moteur M-07')"><i class="ti ti-trash"></i></button></div>
+          </div>
+          <div class="mcard" id="mcard-compresseur-cp-01">
+            <div class="mcard-icon"><i class="ti ti-wind"></i></div>
+            <div class="mcard-info">
+              <div class="mcard-name">Compresseur CP-01</div>
+              <div class="mcard-meta">Atelier A · 2 pannes · Révision : 20/04/26</div>
+              <div style="margin-top:4px;"><span class="badge bi">Normal</span></div>
+            </div>
+            <div class="mcard-actions"><button class="btn-del" onclick="deleteMachine('compresseur-cp-01', 'Compresseur CP-01')"><i class="ti ti-trash"></i></button></div>
+          </div>
+          <div class="mcard" id="mcard-transformateur-tr-02">
+            <div class="mcard-icon"><i class="ti ti-bolt"></i></div>
+            <div class="mcard-info">
+              <div class="mcard-name">Transformateur TR-02</div>
+              <div class="mcard-meta">Électrique · 0 panne · Révision : 10/06/26</div>
+              <div style="margin-top:4px;"><span class="badge bs">Bon état</span></div>
+            </div>
+            <div class="mcard-actions"><button class="btn-del" onclick="deleteMachine('transformateur-tr-02', 'Transformateur TR-02')"><i class="ti ti-trash"></i></button></div>
+          </div>
+          <div class="mcard" id="mcard-tour-cnc-t-01">
+            <div class="mcard-icon"><i class="ti ti-rotate-clockwise"></i></div>
+            <div class="mcard-info">
+              <div class="mcard-name">Tour CNC T-01</div>
+              <div class="mcard-meta">Atelier C · 1 panne · Révision : 05/06/26</div>
+              <div style="margin-top:4px;"><span class="badge bi">Normal</span></div>
+            </div>
+            <div class="mcard-actions"><button class="btn-del" onclick="deleteMachine('tour-cnc-t-01', 'Tour CNC T-01')"><i class="ti ti-trash"></i></button></div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:16px;">
+          <div class="card-header"><span class="card-title">Données analytiques par machine</span></div>
+          <table class="tbl">
+            <thead><tr><th>Machine</th><th>Pannes</th><th>Dernière anomalie</th><th>MTBF estimé</th><th>Statut révision</th></tr></thead>
+            <tbody id="machines-table-tbody">
+              <tr id="trow-pompe-p-03"><td>Pompe P-03</td><td style="color:var(--red);font-family:var(--mono);font-weight:600;">47</td><td>Aujourd'hui</td><td style="font-family:var(--mono);">4.2 jrs</td><td style="color:var(--red); font-weight:500;">En retard</td></tr>
+              <tr id="trow-convoyeur-c-12"><td>Convoyeur C-12</td><td style="color:var(--orange);font-family:var(--mono);font-weight:600;">18</td><td>Il y a 3h</td><td style="font-family:var(--mono);">11.5 jrs</td><td>15/07/2026</td></tr>
+              <tr id="trow-moteur-m-07"><td>Moteur M-07</td><td style="font-family:var(--mono);font-weight:600;">5</td><td>Il y a 3 mois</td><td style="font-family:var(--mono);">62.0 jrs</td><td style="color:var(--green);">15/09/2026</td></tr>
+              <tr id="trow-compresseur-cp-01"><td>Compresseur CP-01</td><td style="font-family:var(--mono);font-weight:600;">9</td><td>Il y a 15 jours</td><td style="font-family:var(--mono);">33.4 jrs</td><td>20/07/2026</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- STOCK PAGE -->
+      <div class="page" id="page-stock">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <div class="card-title" style="margin:0;">Gestion du stock</div>
+          <button class="btn btn-p btn-sm" onclick="toggleAddForm('form-add-stock')"><i class="ti ti-plus"></i> Ajouter</button>
+        </div>
+
+        <div class="card" id="form-add-stock" style="display:none;border-color:var(--text);">
+          <div class="card-title" style="margin-bottom:12px;">Nouvelle Pièce Détachée</div>
+          <div class="grid3">
+            <div class="fgrp"><label class="flabel">Nom composant</label><input class="fc" id="new-s-name" placeholder="Ex: Capteur optique"></div>
+            <div class="fgrp"><label class="flabel">Référence</label><input class="fc" id="new-s-ref" placeholder="Ex: OPT-204"></div>
+            <div class="fgrp"><label class="flabel">Machine liée</label><input class="fc" id="new-s-mach" placeholder="Ex: C-12"></div>
+          </div>
+          <div class="grid3">
+            <div class="fgrp"><label class="flabel">Quantité</label><input class="fc" type="number" id="new-s-qty" value="10"></div>
+            <div class="fgrp"><label class="flabel">Seuil min</label><input class="fc" type="number" id="new-s-min" value="5"></div>
+            <div class="fgrp">
+              <label class="flabel">Statut</label>
+              <select class="fc" id="new-s-status">
+                <option value="OK">OK (Stock suffisant)</option>
+                <option value="Stock bas">Stock bas</option>
+                <option value="Commander">À commander</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;justify-content:flex-end;">
+            <button class="btn btn-sm" onclick="toggleAddForm('form-add-stock')">Annuler</button>
+            <button class="btn btn-p btn-sm" onclick="addStockItem()">Enregistrer</button>
+          </div>
+        </div>
+
+        <div class="card" style="padding:0;overflow:hidden;">
+          <table class="tbl">
+            <thead><tr><th>Pièce</th><th>Référence</th><th>Machine</th><th>Stock</th><th>Min</th><th>Niveau</th><th>Statut</th><th>Action</th></tr></thead>
+            <tbody id="stock-table-tbody">
+              <tr>
+                <td>Joint SKF 35x47x7</td><td style="font-family:var(--mono);font-size:11px;">SKF-35477</td><td>P-03</td>
+                <td style="font-family:var(--mono);font-weight:600;color:var(--red);">2</td><td style="font-family:var(--mono);">5</td>
+                <td><div class="sbar"><div class="sbar-fill" style="width:15%;background:var(--red);"></div></div></td>
+                <td><span class="badge bd">Commander</span></td>
+                <td><button class="btn-del" onclick="deleteTableRow(this, 'stock')"><i class="ti ti-trash"></i></button></td>
+              </tr>
+              <tr>
+                <td>Filtre hydraulique HF-230</td><td style="font-family:var(--mono);font-size:11px;">HF-230</td><td>P-03</td>
+                <td style="font-family:var(--mono);font-weight:600;color:var(--orange);">3</td><td style="font-family:var(--mono);">5</td>
+                <td><div class="sbar"><div class="sbar-fill" style="width:25%;background:var(--orange);"></div></div></td>
+                <td><span class="badge bw">Stock bas</span></td>
+                <td><button class="btn-del" onclick="deleteTableRow(this, 'stock')"><i class="ti ti-trash"></i></button></td>
+              </tr>
+              <tr>
+                <td>Huile hydraulique HV46 5L</td><td style="font-family:var(--mono);font-size:11px;">HV46-5L</td><td>P-03</td>
+                <td style="font-family:var(--mono);font-weight:600;color:var(--red);">1</td><td style="font-family:var(--mono);">4</td>
+                <td><div class="sbar"><div class="sbar-fill" style="width:10%;background:var(--red);"></div></div></td>
+                <td><span class="badge bd">Commander</span></td>
+                <td><button class="btn-del" onclick="deleteTableRow(this, 'stock')"><i class="ti ti-trash"></i></button></td>
+              </tr>
+              <tr>
+                <td>Courroie V-belt A42</td><td style="font-family:var(--mono);font-size:11px;">VB-A42</td><td>C-12</td>
+                <td style="font-family:var(--mono);font-weight:600;color:var(--orange);">2</td><td style="font-family:var(--mono);">3</td>
+                <td><div class="sbar"><div class="sbar-fill" style="width:30%;background:var(--orange);"></div></div></td>
+                <td><span class="badge bw">Stock bas</span></td>
+                <td><button class="btn-del" onclick="deleteTableRow(this, 'stock')"><i class="ti ti-trash"></i></button></td>
+              </tr>
+              <tr>
+                <td>Roulement 6205-2RS</td><td style="font-family:var(--mono);font-size:11px;">SKF-6205</td><td>M-07</td>
+                <td style="font-family:var(--mono);font-weight:600;color:var(--green);">12</td><td style="font-family:var(--mono);">5</td>
+                <td><div class="sbar"><div class="sbar-fill" style="width:70%;background:var(--green);"></div></div></td>
+                <td><span class="badge bs">OK</span></td>
+                <td><button class="btn-del" onclick="deleteTableRow(this, 'stock')"><i class="ti ti-trash"></i></button></td>
+              </tr>
+              <tr>
+                <td>Vis M12×50 inox</td><td style="font-family:var(--mono);font-size:11px;">VM12-50</td><td>Général</td>
+                <td style="font-family:var(--mono);font-weight:600;color:var(--green);">45</td><td style="font-family:var(--mono);">20</td>
+                <td><div class="sbar"><div class="sbar-fill" style="width:90%;background:var(--green);"></div></div></td>
+                <td><span class="badge bs">OK</span></td>
+                <td><button class="btn-del" onclick="deleteTableRow(this, 'stock')"><i class="ti ti-trash"></i></button></td>
+              </tr>
+              <tr>
+                <td>Fusible 32A</td><td style="font-family:var(--mono);font-size:11px;">FUS-32A</td><td>TR-02</td>
+                <td style="font-family:var(--mono);font-weight:600;color:var(--red);">0</td><td style="font-family:var(--mono);">5</td>
+                <td><div class="sbar"><div class="sbar-fill" style="width:0%;background:var(--red);"></div></div></td>
+                <td><span class="badge bd">Rupture</span></td>
+                <td><button class="btn-del" onclick="deleteTableRow(this, 'stock')"><i class="ti ti-trash"></i></button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ASSISTANT IA PAGE -->
+      <div class="page" id="page-ia">
+        <div id="api-key-banner" class="api-key-banner">
+          <i class="ti ti-key"></i>
+          <div style="flex:1;">
+            <strong>Clé API requise.</strong> Renseignez votre accès sur <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> puis associez-la ci-dessous.
+          </div>
+        </div>
+        <div id="api-key-row" class="api-key-input-row" style="margin-bottom:14px;">
+          <input class="fc" type="password" id="api-key-input" placeholder="sk-ant-api03-..." style="font-family:var(--mono);font-size:12px;">
+          <button class="btn btn-p" onclick="saveApiKey()"><i class="ti ti-check"></i> Activer</button>
+        </div>
+        <div class="quick-btns">
+          <button class="quick-btn" onclick="quickChat('Diagnostique la pompe P-03 qui a 7 pannes ce mois et un arrêt cumulé de 14h30. Causes probables et recommandations ?')">🔴 Analyser Pompe P-03</button>
+          <button class="quick-btn" onclick="quickChat('Quelles maintenances préventives dois-je planifier ce mois pour éviter les pannes ?')">📅 Plan préventif ce mois</button>
+          <button class="quick-btn" onclick="quickChat('La pompe fait un bruit de claquement au démarrage et la pression chute après 5 minutes. Quel est le diagnostic ?')">🔊 Diagnostic bruit pompe</button>
+          <button class="quick-btn" onclick="quickChat('Le stock de joints SKF et huile HV46 est critique. Que dois-je commander en priorité et en quelle quantité ?')">📦 Optimiser les commandes stock</button>
+          <button class="quick-btn" onclick="quickChat('Génère un rapport hebdomadaire de maintenance pour cette semaine avec 24 pannes, 7 en cours, temps moyen 2h18')">📊 Rapport hebdomadaire</button>
+        </div>
+        <div class="card" style="padding:0;display:flex;flex-direction:column;height:400px;">
+          <div class="chat-area" id="chat-area" style="padding:14px;flex:1;overflow-y:auto;">
+            <div class="chat-msg ai">
+              <div class="chat-bubble">Bonjour ! Je suis l'assistant IA de TET, spécialisé en maintenance industrielle électromécanique. Je peux vous aider à :
+• Diagnostiquer des pannes machines
+• Générer des rapports d'intervention
+• Planifier la maintenance préventive
+• Analyser le stock de pièces
+• Répondre à toutes vos questions techniques
+
+Comment puis-je vous aider ?</div>
+              <div class="chat-time">Assistant TET · En ligne</div>
+            </div>
+          </div>
+          <div style="padding:10px;border-top:1px solid var(--border);">
+            <div class="chat-input-area">
+              <textarea class="chat-input" id="chat-input" placeholder="Posez votre question technique..." rows="1"
+                onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat();}"></textarea>
+              <button class="chat-send" onclick="sendChat()"><i class="ti ti-send"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SETTINGS PAGE -->
+      <div class="page" id="page-settings">
+        <div class="grid2">
+          <div class="card">
+            <div class="card-title" style="margin-bottom:14px;">Configuration IA</div>
+            <div class="fgrp">
+              <label class="flabel">Clé API Anthropic (Claude)</label>
+              <input class="fc" type="password" id="settings-api-key" placeholder="sk-ant-api03-...">
+            </div>
+            <button class="btn btn-p" onclick="saveApiKeySettings()"><i class="ti ti-check"></i> Enregistrer</button>
+            <div class="ok-msg" id="settings-ok"><i class="ti ti-circle-check"></i> Clé API enregistrée.</div>
+          </div>
+          <div class="card">
+            <div class="card-title" style="margin-bottom:14px;">Informations usine</div>
+            <div class="fgrp"><label class="flabel">Nom de l'usine</label><input class="fc" id="setting-factory-name" value="Usine Industrielle Alger Nord" oninput="saveAppState()"></div>
+            <div class="fgrp"><label class="flabel">Nombre de techniciens</label><input class="fc" type="number" id="setting-tech-count" value="5" oninput="updateTechniciansCount()"></div>
+            <div class="fgrp"><label class="flabel">Langue des rapports</label><select class="fc"><option>Français</option><option>Arabe</option><option>Anglais</option></select></div>
+            <button class="btn btn-p" onclick="saveFactorySettings()"><i class="ti ti-device-floppy"></i> Sauvegarder</button>
+            <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+              <button class="btn btn-sm" style="color:var(--red);" onclick="resetAppState()"><i class="ti ti-trash"></i> Réinitialiser les données locales</button>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="margin-bottom:14px;">Comment déployer TET en ligne</div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div class="stat-row"><span>1️⃣</span><div><div style="font-weight:600;color:var(--text);">Créer un compte Netlify</div><div style="font-size:11px;color:var(--text3);">Va sur netlify.com → Inscription gratuite</div></div></div>
+            <div class="stat-row"><span>2️⃣</span><div><div style="font-weight:600;color:var(--text);">Déposer le fichier TET.html</div><div style="font-size:11px;color:var(--text3);">Glissez-déposez le fichier dans la zone d'envoi</div></div></div>
+            <div class="stat-row"><span>3️⃣</span><div><div style="font-weight:600;color:var(--text);">Votre application est active</div><div style="font-size:11px;color:var(--text3);">Disponible sur mobile et PC instantanément</div></div></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Barre de Navigation Basse (Mobile) -->
+  <div class="botnav">
+    <button class="bn-item active" data-roles="superviseur" onclick="navMobile('dashboard', this)"><i class="ti ti-layout-dashboard"></i>Dash</button>
+    <button class="bn-item" data-roles="superviseur" onclick="navMobile('tasks', this)"><i class="ti ti-clipboard-list"></i>Tâches<span class="bn-badge" id="task-badge-mobile">5</span></button>
+    <button class="bn-item" id="bn-item-primary" data-roles="superviseur,technicien" onclick="navMobile('signal', this)"><i class="ti ti-alert-triangle"></i>Signalement</button>
+    <button class="bn-item" onclick="openMobileMenu()"><i class="ti ti-menu-2"></i>Plus</button>
+  </div>
+</div>
+
+<!-- Dravers Contextuels (Menu "Plus" Mobile) -->
+<div class="sheet-backdrop" id="menu-backdrop" onclick="closeMobileMenu()"></div>
+<div class="sheet" id="mobile-menu-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-section">Ressources & IA</div>
+  <div class="sheet-item" data-roles="superviseur,technicien" onclick="navMobile('report', this); closeMobileMenu();"><i class="ti ti-file-description"></i>Rapport d'intervention</div>
+  <div class="sheet-item" data-roles="superviseur,technicien,magasinier" onclick="navMobile('machines', this); closeMobileMenu();"><i class="ti ti-settings-2"></i>Machines</div>
+  <div class="sheet-item" data-roles="superviseur,technicien,magasinier" onclick="navMobile('stock', this); closeMobileMenu();"><i class="ti ti-package"></i>Stock Pièces</div>
+  <div class="sheet-item" data-roles="superviseur,technicien,magasinier" onclick="navMobile('ia', this); closeMobileMenu();"><i class="ti ti-robot"></i>Assistant IA</div>
+  <div class="sheet-item" data-roles="superviseur,technicien" onclick="navMobile('settings', this); closeMobileMenu();"><i class="ti ti-settings"></i>Paramètres</div>
+  <div class="sheet-divider"></div>
+  <div class="sheet-user">
+    <div class="user-av" id="mobile-sheet-av">YC</div>
+    <div>
+      <div class="user-name" id="mobile-sheet-name">Yacine Chems</div>
+      <div class="user-role" id="mobile-sheet-role">Superviseur</div>
+    </div>
+    <button class="btn-logout" onclick="logout(); closeMobileMenu();"><i class="ti ti-logout"></i></button>
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+let currentRole = 'superviseur';
+let apiKey = localStorage.getItem('tet_api_key') || '';
+let chatHistory = [];
+let selectedPriority = 'c';
+
+const defaultSystemPrompt = `Tu es l'assistant IA de TET, une application de gestion de maintenance industrielle pour des usines algériennes. Tu es expert en électromécanique, maintenance industrielle, et gestion de production. Réponds en français, de façon structurée, claire et pratique pour des techniciens et superviseurs de terrain. Sois précis, concis et professionnel. Tu connais le contexte général de l'usine : 24 pannes ce mois, pompe P-03 critique (7 pannes), 5 techniciens actifs, stock critique sur les joints SKF et l'huile hydraulique HV46.`;
+
+const STORAGE_KEY = 'tet_app_state';
+
+// Dynamique View Mode Switcher para tester les 2 designs
+function toggleViewMode() {
+  document.body.classList.toggle('mode-mobile');
+  applyRoleVisibility();
+}
+
+function toggleViewModeInit() {
+  if (window.innerWidth <= 768) {
+    document.body.classList.add('mode-mobile');
+  } else {
+    document.body.classList.remove('mode-mobile');
+  }
+}
+
+function navMobile(id, el) {
+  nav(id, null);
+  document.querySelectorAll('.bn-item').forEach(b => b.classList.remove('active'));
+  if(el && el.classList.contains('bn-item')) {
+    el.classList.add('active');
+  } else {
+    // Si l'élément provient du tiroir déroulant "Plus"
+    const items = document.querySelectorAll('.bn-item');
+    if (id === 'report' || id === 'machines' || id === 'stock' || id === 'ia' || id === 'settings') {
+      items[3].classList.add('active');
+    }
+  }
+}
+
+function openMobileMenu() {
+  document.getElementById('menu-backdrop').classList.add('visible');
+  document.getElementById('mobile-menu-sheet').classList.add('visible');
+}
+
+function closeMobileMenu() {
+  document.getElementById('menu-backdrop').classList.remove('visible');
+  document.getElementById('mobile-menu-sheet').classList.remove('visible');
+}
+
+function saveAppState() {
+  try {
+    const state = {
+      machinesGrid: document.getElementById('machines-grid-container').innerHTML,
+      machinesTable: document.getElementById('machines-table-tbody').innerHTML,
+      stockTable: document.getElementById('stock-table-tbody').innerHTML,
+      tasksTable: document.getElementById('tasks-tbody').innerHTML,
+      dashMachinesTable: document.getElementById('dash-machines-tbody').innerHTML,
+      sigMachineOptions: document.getElementById('sig-machine').innerHTML,
+      repMachineOptions: document.getElementById('rep-machine').innerHTML,
+      techList: document.getElementById('tech-list-container').innerHTML,
+      techCount: document.getElementById('setting-tech-count').value,
+      factoryName: document.getElementById('setting-factory-name') ? document.getElementById('setting-factory-name').value : '',
+      kpiTechVal: document.getElementById('kpi-tech-val').textContent,
+      kpiTechSub: document.getElementById('kpi-tech-sub').textContent,
+      dashTechBadge: document.getElementById('dash-tech-count-badge').textContent,
+      chatHistory: chatHistory,
+      chatArea: document.getElementById('chat-area').innerHTML
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (e) {
+    console.error('Erreur de sauvegarde locale :', e);
+  }
+}
+
+function loadAppState() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return;
+  try {
+    const state = JSON.parse(raw);
+    if (state.machinesGrid) document.getElementById('machines-grid-container').innerHTML = state.machinesGrid;
+    if (state.machinesTable) document.getElementById('machines-table-tbody').innerHTML = state.machinesTable;
+    if (state.stockTable) document.getElementById('stock-table-tbody').innerHTML = state.stockTable;
+    if (state.tasksTable) document.getElementById('tasks-tbody').innerHTML = state.tasksTable;
+    if (state.dashMachinesTable) document.getElementById('dash-machines-tbody').innerHTML = state.dashMachinesTable;
+    if (state.sigMachineOptions) document.getElementById('sig-machine').innerHTML = state.sigMachineOptions;
+    if (state.repMachineOptions) document.getElementById('rep-machine').innerHTML = state.repMachineOptions;
+    if (state.techList) document.getElementById('tech-list-container').innerHTML = state.techList;
+    if (state.techCount) document.getElementById('setting-tech-count').value = state.techCount;
+    if (state.factoryName && document.getElementById('setting-factory-name')) document.getElementById('setting-factory-name').value = state.factoryName;
+    if (state.kpiTechVal) document.getElementById('kpi-tech-val').textContent = state.kpiTechVal;
+    if (state.kpiTechSub) document.getElementById('kpi-tech-sub').textContent = state.kpiTechSub;
+    if (state.dashTechBadge) document.getElementById('dash-tech-count-badge').textContent = state.dashTechBadge;
+    if (Array.isArray(state.chatHistory)) chatHistory = state.chatHistory;
+    if (state.chatArea) document.getElementById('chat-area').innerHTML = state.chatArea;
+  } catch (e) {
+    console.error('Erreur de chargement local :', e);
+  }
+}
+
+function resetAppState() {
+  if (confirm('Réinitialiser toutes les données locales et revenir à la démo de départ ? Cette action est irréversible.')) {
+    localStorage.removeItem(STORAGE_KEY);
+    location.reload();
+  }
+}
+
+window.onload = () => {
+  document.getElementById('top-date').textContent = new Date().toLocaleDateString('fr-FR', {weekday:'long',day:'numeric',month:'long'});
+  toggleViewModeInit();
+  loadAppState();
+  if (apiKey) {
+    document.getElementById('api-key-banner').style.display = 'none';
+    document.getElementById('api-key-row').style.display = 'none';
+    document.getElementById('settings-api-key').value = apiKey;
+  }
+  updateBadgesCount();
+};
+
+window.onresize = toggleViewModeInit;
+
+function toggleAddForm(id) {
+  const form = document.getElementById(id);
+  form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+
+function addMachine() {
+  const name = document.getElementById('new-m-name').value.trim();
+  const loc = document.getElementById('new-m-loc').value.trim();
+  const icon = document.getElementById('new-m-icon').value;
+  
+  if (!name || !loc) return alert('Veuillez remplir le nom et la localisation de la machine.');
+  
+  const id = name.toLowerCase().replace(/[^a-z0-9]/g, '-');
+  
+  const grid = document.getElementById('machines-grid-container');
+  const div = document.createElement('div');
+  div.className = 'mcard';
+  div.id = `mcard-${id}`;
+  div.innerHTML = `
+    <div class="mcard-icon"><i class="ti ${icon}"></i></div>
+    <div class="mcard-info">
+      <div class="mcard-name">${name}</div>
+      <div class="mcard-meta">${loc} · 0 panne · Révision : Nouvelle</div>
+      <div style="margin-top:4px;"><span class="badge bs">Bon état</span></div>
+    </div>
+    <div class="mcard-actions"><button class="btn-del" onclick="deleteMachine('${id}', '${name}')"><i class="ti ti-trash"></i></button></div>
+  `;
+  grid.appendChild(div);
+
+  const tbody = document.getElementById('machines-table-tbody');
+  const tr = document.createElement('tr');
+  tr.id = `trow-${id}`;
+  tr.innerHTML = `<td>${name}</td><td style="font-family:var(--mono);font-weight:600;">0</td><td>—</td><td style="font-family:var(--mono);">—</td><td style="color:var(--green);">Planifiée</td>`;
+  tbody.appendChild(tr);
+
+  const selectSig = document.getElementById('sig-machine');
+  const selectRep = document.getElementById('rep-machine');
+  const optionText = `${name} · ${loc}`;
+  selectSig.options[selectSig.options.length] = new Option(optionText, optionText);
+  selectRep.options[selectRep.options.length] = new Option(optionText, optionText);
+
+  document.getElementById('new-m-name').value = '';
+  document.getElementById('new-m-loc').value = '';
+  toggleAddForm('form-add-machine');
+  saveAppState();
+}
+
+function deleteMachine(id, name) {
+  if (confirm(`Voulez-vous vraiment supprimer la machine "${name}" ?`)) {
+    document.getElementById(`mcard-${id}`)?.remove();
+    document.getElementById(`trow-${id}`)?.remove();
+    
+    const selectSig = document.getElementById('sig-machine');
+    const selectRep = document.getElementById('rep-machine');
+    for (let s of [selectSig, selectRep]) {
+      for (let i = 0; i < s.options.length; i++) {
+        if (s.options[i].value.includes(name)) {
+          s.remove(i);
+          i--;
+        }
+      }
+    }
+    saveAppState();
+  }
+}
+
+function addStockItem() {
+  const name = document.getElementById('new-s-name').value.trim();
+  const ref = document.getElementById('new-s-ref').value.trim();
+  const mach = document.getElementById('new-s-mach').value.trim() || 'Général';
+  const qty = parseInt(document.getElementById('new-s-qty').value) || 0;
+  const min = parseInt(document.getElementById('new-s-min').value) || 0;
+  const status = document.getElementById('new-s-status').value;
+
+  if (!name || !ref) return alert('Veuillez renseigner le nom et la référence.');
+
+  let badgeClass = 'bs';
+  let colorStyle = 'color:var(--green);';
+  if (status === 'Stock bas') { badgeClass = 'bw'; colorStyle = 'color:var(--orange);'; }
+  if (status === 'Commander' || status === 'Rupture') { badgeClass = 'bd'; colorStyle = 'color:var(--red);'; }
+
+  const pct = Math.min(100, Math.max(0, (qty / (min * 2)) * 100));
+  const barColor = status === 'OK' ? 'var(--green)' : (status === 'Stock bas' ? 'var(--orange)' : 'var(--red)');
+
+  const tbody = document.getElementById('stock-table-tbody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td>${name}</td><td style="font-family:var(--mono);font-size:11px;">${ref}</td><td>${mach}</td>
+    <td style="font-family:var(--mono);font-weight:600;${colorStyle}">${qty}</td><td style="font-family:var(--mono);">${min}</td>
+    <td><div class="sbar"><div class="sbar-fill" style="width:${pct}%;background:${barColor};"></div></div></td>
+    <td><span class="badge ${badgeClass}">${status}</span></td>
+    <td><button class="btn-del" onclick="deleteTableRow(this, 'stock')"><i class="ti ti-trash"></i></button></td>
+  `;
+  tbody.appendChild(tr);
+
+  toggleAddForm('form-add-stock');
+  updateBadgesCount();
+  saveAppState();
+}
+
+function deleteTableRow(button, type) {
+  if (confirm('Confirmer la suppression de cet élément ?')) {
+    button.closest('tr').remove();
+    if (type === 'stock') updateBadgesCount();
+    saveAppState();
+  }
+}
+
+function updateBadgesCount() {
+  const stockCount = document.getElementById('stock-table-tbody').rows.length;
+  document.getElementById('stock-badge').textContent = stockCount;
+}
+
+function updateTechniciansCount() {
+  const count = document.getElementById('setting-tech-count').value || 5;
+  document.getElementById('kpi-tech-val').textContent = `3/${count}`;
+  document.getElementById('kpi-tech-sub').textContent = `${count} actifs au total`;
+  document.getElementById('dash-tech-count-badge').textContent = `${count} actifs`;
+
+  const container = document.getElementById('tech-list-container');
+  const currentVisualRows = container.getElementsByClassName('row').length;
+  
+  if (count > currentVisualRows) {
+    for (let i = currentVisualRows + 1; i <= count; i++) {
+      const div = document.createElement('div');
+      div.className = 'row';
+      div.innerHTML = `<div class="av avs">T${i}</div><div class="rinfo"><div class="rtitle">Technicien Extérieur ${i}</div><div class="rmeta">Disponible</div></div><span class="badge bs">Libre</span>`;
+      container.appendChild(div);
+    }
+  } else if (count < currentVisualRows) {
+    for (let i = currentVisualRows; i > count; i--) {
+      if(container.lastChild) container.removeChild(container.lastChild);
+    }
+  }
+  saveAppState();
+}
+
+function saveFactorySettings() {
+  const ok = document.createElement('div');
+  ok.className = 'ok-msg visible';
+  ok.innerHTML = '<i class="ti ti-circle-check"></i> Configuration usine sauvegardée !';
+  document.getElementById('page-settings').appendChild(ok);
+  setTimeout(() => ok.remove(), 3000);
+  saveAppState();
+}
+
+function selectRole(role, el) {
+  currentRole = role;
+  document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function doLogin() {
+  const user = document.getElementById('login-user').value.trim() || 'Utilisateur';
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  const initials = user.split('.').map(p => p[0]?.toUpperCase() || '').join('').slice(0,2) || 'U';
+  
+  document.getElementById('sidebar-av').textContent = initials;
+  document.getElementById('mobile-av').textContent = initials;
+  document.getElementById('mobile-sheet-av').textContent = initials;
+  
+  const cleanName = user.replace('.',' ').replace(/\b\w/g,c=>c.toUpperCase());
+  document.getElementById('sidebar-name').textContent = cleanName;
+  document.getElementById('mobile-sheet-name').textContent = cleanName;
+  
+  const roleText = currentRole === 'superviseur' ? 'Superviseur' : (currentRole === 'magasinier' ? 'Magasinier' : 'Technicien');
+  document.getElementById('sidebar-role').textContent = roleText;
+  document.getElementById('mobile-sheet-role').textContent = roleText;
+  
+  applyRoleVisibility();
+}
+
+function applyRoleVisibility() {
+  const isSupervisor = currentRole === 'superviseur';
+  const isMobileMode = document.body.classList.contains('mode-mobile');
+
+  // Permission générique : tout élément avec data-roles n'est visible que si currentRole y figure
+  document.querySelectorAll('[data-roles]').forEach(el => {
+    const allowed = el.dataset.roles.split(',');
+    const visible = allowed.includes(currentRole);
+    el.style.display = visible ? '' : 'none';
+  });
+
+  const generalSection = document.getElementById('nav-section-general');
+  if (generalSection) generalSection.style.display = isSupervisor ? '' : 'none';
+
+  // 3e emplacement de la barre mobile : Signalement (superviseur/technicien) ou Stock (magasinier)
+  const primaryBn = document.getElementById('bn-item-primary');
+  if (primaryBn) {
+    if (currentRole === 'magasinier') {
+      primaryBn.innerHTML = '<i class="ti ti-package"></i>Stock';
+      primaryBn.setAttribute('onclick', "navMobile('stock', this)");
+      primaryBn.style.display = '';
+    } else {
+      primaryBn.innerHTML = '<i class="ti ti-alert-triangle"></i>Signalement';
+      primaryBn.setAttribute('onclick', "navMobile('signal', this)");
+      primaryBn.style.display = '';
+    }
+  }
+
+  if (!isSupervisor) {
+    const activePage = document.querySelector('.page.active');
+    if (activePage && (activePage.id === 'page-dashboard' || activePage.id === 'page-tasks')) {
+      const fallback = currentRole === 'magasinier' ? 'stock' : 'signal';
+      if (isMobileMode) {
+        navMobile(fallback, document.getElementById('bn-item-primary'));
+      } else {
+        nav(fallback, document.querySelector(`[onclick*="nav('${fallback}'"]`));
+      }
+    }
+  }
+}
+
+function logout() {
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+function nav(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  if (el) el.classList.add('active');
+  const titles = {
+    dashboard:'Dashboard',tasks:'Gestion des tâches',signal:'Signaler un problème',
+    report:"Rapport d'intervention",machines:'Parc machines',stock:'Stock pièces de rechange',
+    ia:'Assistant IA',settings:'Paramètres'
+  };
+  document.getElementById('ptitle').textContent = titles[id] || id;
+}
+
+function filterTasks(status, btn) {
+  document.querySelectorAll('[onclick*=filterTasks]').forEach(b => { b.style.background=''; b.style.color=''; });
+  btn.style.background = 'var(--bg4)'; btn.style.color = 'var(--text)';
+  document.querySelectorAll('#tasks-tbody tr').forEach(row => {
+    row.style.display = (status === 'all' || row.dataset.status === status) ? '' : 'none';
+  });
+}
+
+function selectPriority(p, el) {
+  selectedPriority = p;
+  document.querySelectorAll('.priority-opt').forEach(o => o.className = 'priority-opt');
+  el.classList.add('selected-' + p);
+}
+
+function submitSignal() {
+  const ok = document.getElementById('sig-ok');
+  ok.classList.add('visible');
+  setTimeout(() => ok.classList.remove('visible'), 4000);
+}
+
+function submitReport() {
+  const ok = document.getElementById('rep-ok');
+  ok.classList.add('visible');
+  setTimeout(() => ok.classList.remove('visible'), 4000);
+}
+
+function saveApiKey() {
+  const key = document.getElementById('api-key-input').value.trim();
+  if (!key) return alert('Entre ta clé API.');
+  apiKey = key;
+  localStorage.setItem('tet_api_key', key);
+  document.getElementById('api-key-banner').style.display = 'none';
+  document.getElementById('api-key-row').style.display = 'none';
+  document.getElementById('settings-api-key').value = key;
+  addChatMsg('ai', '✅ Clé API enregistrée ! Assistant connecté.');
+}
+
+function saveApiKeySettings() {
+  const key = document.getElementById('settings-api-key').value.trim();
+  if (!key) return alert('Entre ta clé API.');
+  apiKey = key;
+  localStorage.setItem('tet_api_key', key);
+  document.getElementById('api-key-input').value = key;
+  document.getElementById('api-key-banner').style.display = 'none';
+  document.getElementById('api-key-row').style.display = 'none';
+  const ok = document.getElementById('settings-ok');
+  ok.classList.add('visible');
+  setTimeout(() => ok.classList.remove('visible'), 3000);
+}
+
+async function callClaude(prompt, system) {
+  if (!apiKey) {
+    if(document.body.classList.contains('mode-mobile')) {
+      navMobile('ia', null);
+    } else {
+      nav('ia', document.querySelector('[onclick*="ia"]'));
+    }
+    return 'Clé API manquante. Associez votre accès dans l\'onglet Assistant IA.';
+  }
+  
+  const sysPrompt = system || defaultSystemPrompt;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerously-allow-browser': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-3-5-sonnet-20241022', 
+        max_tokens: 1500,
+        system: sysPrompt,
+        messages: [{role: 'user', content: prompt}]
+      })
+    });
+    
+    if (!resp.ok) {
+      const errData = await resp.json();
+      return `Erreur API (${resp.status}): ${errData.error?.message || 'Inconnue'}`;
+    }
+    
+    const data = await resp.json();
+    return data.content?.[0]?.text || 'Erreur : Réponse IA vide.';
+  } catch (e) {
+    console.error(e);
+    return `Erreur réseau ou restriction CORS locale. Pour résoudre cela, déposez simplement le fichier HTML sur Netlify comme indiqué dans l'onglet Paramètres.`;
+  }
+}
+
+async function diagnoseSignal() {
+  const desc = document.getElementById('sig-desc').value.trim();
+  const machine = document.getElementById('sig-machine').value;
+  const box = document.getElementById('sig-ai');
+  const result = document.getElementById('sig-ai-result');
+  box.classList.add('visible');
+  result.classList.remove('visible');
+  
+  const prompt = `Machine : ${machine || 'non spécifiée'}. Problème signalé : "${desc || 'Bruit anormal et vibrations'}"...`;
+  
+  const text = await callClaude(prompt);
+  result.textContent = text;
+  result.classList.add('visible');
+  box.querySelector('.ai-header').innerHTML = '<i class="ti ti-robot"></i> Diagnostic IA — Résultat';
+}
+
+async function generateReport() {
+  const machine = document.getElementById('rep-machine').value;
+  const type = document.getElementById('rep-type').value;
+  const problem = document.getElementById('rep-problem').value.trim();
+  const actions = document.getElementById('rep-actions').value.trim();
+  const pieces = document.getElementById('rep-pieces').value.trim();
+  const resultField = document.getElementById('rep-result').value;
+  const box = document.getElementById('rep-ai');
+  const result = document.getElementById('rep-ai-result');
+  
+  box.classList.add('visible');
+  result.classList.remove('visible');
+  document.getElementById('rep-copy-btn').style.display = 'none';
+  
+  const prompt = `Génère un rapport d'intervention. Machine : ${machine}. Type : ${type}...`;
+
+  const text = await callClaude(prompt);
+  result.textContent = text;
+  result.classList.add('visible');
+  document.getElementById('rep-copy-btn').style.display = 'block';
+  box.querySelector('.ai-header').innerHTML = '<i class="ti ti-file-check"></i> Rapport édité';
+}
+
+function copyReport() {
+  const text = document.getElementById('rep-ai-result').textContent;
+  navigator.clipboard.writeText(text).then(() => alert('Rapport copié !'));
+}
+
+function addChatMsg(role, text) {
+  const area = document.getElementById('chat-area');
+  const now = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'});
+  const div = document.createElement('div');
+  div.className = 'chat-msg ' + role;
+  div.innerHTML = `<div class="chat-bubble">${text.replace(/\n/g,'<br>')}</div><div class="chat-time">${role==='user'?'Vous':'Assistant'} · ${now}</div>`;
+  area.appendChild(div);
+  area.scrollTop = area.scrollHeight;
+}
+
+function addTypingIndicator() {
+  const area = document.getElementById('chat-area');
+  const div = document.createElement('div');
+  div.className = 'chat-msg ai'; div.id = 'typing-indicator';
+  div.innerHTML = `<div class="chat-bubble"><span class="dots"><span>.</span><span>.</span><span>.</span></span></div>`;
+  area.appendChild(div);
+  area.scrollTop = area.scrollHeight;
+}
+
+function removeTypingIndicator() {
+  const el = document.getElementById('typing-indicator');
+  if (el) el.remove();
+}
+
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  addChatMsg('user', msg);
+  chatHistory.push({role:'user', content: msg});
+  addTypingIndicator();
+  
+  try {
+    if (!apiKey) {
+      removeTypingIndicator();
+      addChatMsg('ai', '⚠️ Clé API absente. Veuillez l\'associer pour échanger.');
+      return;
+    }
+    
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerously-allow-browser': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-3-5-sonnet-20241022', 
+        max_tokens: 1200,
+        system: defaultSystemPrompt,
+        messages: chatHistory
+      })
+    });
+    
+    if(!resp.ok) {
+       removeTypingIndicator();
+       addChatMsg('ai', `❌ Erreur de traitement API.`);
+       return;
+    }
+    
+    const data = await resp.json();
+    const aiText = data.content?.[0]?.text || 'Erreur.';
+    chatHistory.push({role:'assistant', content: aiText});
+    removeTypingIndicator();
+    addChatMsg('ai', aiText);
+    saveAppState();
+  } catch(e) {
+    removeTypingIndicator();
+    addChatMsg('ai', '❌ Échec de transmission. Déployez en ligne (ex: Netlify) pour éviter les restrictions de requêtes locales (CORS).');
+    saveAppState();
+  }
+}
+
+function quickChat(msg) {
+  document.getElementById('chat-input').value = msg;
+  if(document.body.classList.contains('mode-mobile')) {
+    navMobile('ia', null);
+  } else {
+    nav('ia', document.querySelector('[onclick*="\'ia\'"]'));
+  }
+  setTimeout(sendChat, 100);
+}
+
+function quickDiag(context) {
+  quickChat('Analyse : ' + context + '. Recommandations ?');
+}
+</script>
+</body>
+</html>
