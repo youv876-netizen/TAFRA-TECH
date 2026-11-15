@@ -114,13 +114,28 @@ brand:{500:'#f97316',600:'#ea580c',700:'#c2410c'}
   <div class="w-full max-w-lg card p-8 shadow-2xl">
     <div class="w-12 h-12 rounded-xl bg-brand-600 flex items-center justify-center font-black text-white mb-4">TET</div>
     <h1 class="text-xl font-black">Bienvenue <span x-text="currentUser?.name"></span></h1>
-    <p class="text-xs text-slate-400 mt-1">Choisissez votre rôle pour accéder à TET. Un administrateur pourra le modifier ensuite.</p>
-    <div class="space-y-3 mt-6">
-      <button type="button" @click="chooseRole('technician')" class="w-full text-left p-4 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl"><div class="text-sm font-bold text-brand-500">Technicien Maintenance</div><div class="text-[11px] text-slate-400 mt-1">Interventions, rapports, signalements de pannes.</div></button>
-      <button type="button" @click="chooseRole('resp_maint')" class="w-full text-left p-4 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl"><div class="text-sm font-bold text-brand-500">Responsable Maintenance</div><div class="text-[11px] text-slate-400 mt-1">Tableau de bord, machines, stock, audit.</div></button>
-      <button type="button" @click="chooseRole('magasinier')" class="w-full text-left p-4 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl"><div class="text-sm font-bold text-brand-500">Magasinier Stock</div><div class="text-[11px] text-slate-400 mt-1">Pièces de rechange, seuils et mouvements.</div></button>
+    <p class="text-xs text-slate-400 mt-1">Rejoignez l’espace de votre entreprise avec le code d’invitation de votre responsable, ou créez l’espace de votre entreprise.</p>
+    <div class="grid grid-cols-2 gap-2 mt-5">
+      <button type="button" @click="onboardMode='join';authError=''" :class="onboardMode==='join'?'bg-brand-600 text-white':'bg-slate-950 text-slate-300 border border-slate-800'" class="rounded-lg py-2 text-xs font-bold">Rejoindre mon entreprise</button>
+      <button type="button" @click="onboardMode='create';authError=''" :class="onboardMode==='create'?'bg-brand-600 text-white':'bg-slate-950 text-slate-300 border border-slate-800'" class="rounded-lg py-2 text-xs font-bold">Créer mon entreprise</button>
     </div>
-    <div x-show="authError" x-cloak class="mt-4 text-xs rounded-lg border border-red-900 bg-red-950/60 text-red-300 px-3 py-2" x-text="authError"></div>
+    <div x-show="onboardMode==='join'" class="mt-5">
+      <label for="join-code" class="text-[11px] text-slate-400 font-bold uppercase tracking-wider">Code d’invitation</label>
+      <input id="join-code" class="input mt-1 font-mono tracking-widest uppercase" placeholder="Ex. 3F9A1C7B20DE" x-model="joinCode" autocomplete="off" maxlength="24">
+      <p class="text-[11px] text-slate-400 mt-4 mb-2 font-bold uppercase tracking-wider">Votre poste</p>
+      <div class="space-y-3">
+        <button type="button" :disabled="authBusy" @click="joinCompany('technician')" class="w-full text-left p-4 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl"><div class="text-sm font-bold text-brand-500">Technicien Maintenance</div><div class="text-[11px] text-slate-400 mt-1">Interventions, rapports, signalements de pannes.</div></button>
+        <button type="button" :disabled="authBusy" @click="joinCompany('resp_maint')" class="w-full text-left p-4 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl"><div class="text-sm font-bold text-brand-500">Responsable Maintenance</div><div class="text-[11px] text-slate-400 mt-1">Tableau de bord, machines, stock, audit.</div></button>
+        <button type="button" :disabled="authBusy" @click="joinCompany('magasinier')" class="w-full text-left p-4 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl"><div class="text-sm font-bold text-brand-500">Magasinier Stock</div><div class="text-[11px] text-slate-400 mt-1">Pièces de rechange, seuils et mouvements.</div></button>
+      </div>
+    </div>
+    <form x-show="onboardMode==='create'" @submit.prevent="createCompany()" class="mt-5 space-y-3">
+      <label for="co-name" class="text-[11px] text-slate-400 font-bold uppercase tracking-wider">Nom de l’entreprise</label>
+      <input id="co-name" class="input" placeholder="Ex. Cimenterie du Sud" x-model="companyName" maxlength="80" autocomplete="organization">
+      <p class="text-[11px] text-slate-400">Vous deviendrez administrateur de cet espace et recevrez un code d’invitation pour votre équipe.</p>
+      <button type="submit" :disabled="authBusy" class="btn btn-brand w-full">Créer l’espace de mon entreprise</button>
+    </form>
+    <div x-show="authError" x-cloak class="mt-4 text-xs rounded-lg border border-red-900 bg-red-950/60 text-red-300 px-3 py-2" x-text="authError" role="alert"></div>
     <button type="button" @click="logout()" class="mt-5 text-[11px] text-slate-500 hover:text-white">Se déconnecter</button>
   </div>
 </section>
@@ -312,8 +327,15 @@ brand:{500:'#f97316',600:'#ea580c',700:'#c2410c'}
               <input class="input" type="password" placeholder="Nouveau mot de passe (8 caractères min.)" x-model="pwForm.p1" autocomplete="new-password"><input class="input" type="password" placeholder="Confirmation" x-model="pwForm.p2" autocomplete="new-password">
               <button @click="changePassword()" class="btn btn-brand">Changer le mot de passe</button><div class="text-xs text-emerald-400" x-show="pwMsg" x-text="pwMsg"></div></div>
             <div class="card p-5"><h2 class="font-bold mb-3">Équipe et rôles</h2>
+              <div x-show="inviteCode" x-cloak class="mb-4 p-3 rounded-lg border border-brand-600/40 bg-brand-600/10">
+                <div class="text-[11px] font-bold uppercase tracking-wider text-slate-300">Code d’invitation de l’entreprise</div>
+                <div class="mt-1 flex flex-wrap items-center gap-2"><code class="font-mono text-base tracking-widest select-all" x-text="inviteCode"></code>
+                  <button type="button" @click="copyInvite()" class="btn btn-dark !py-1 text-xs">Copier</button>
+                  <button type="button" x-show="currentUser?.role==='super_admin'" @click="regenInvite()" class="btn btn-dark !py-1 text-xs">Renouveler</button></div>
+                <p class="text-[11px] text-slate-400 mt-2">Donnez ce code à vos collègues : ils créent leur compte, saisissent le code et choisissent leur poste.</p>
+              </div>
               <div class="space-y-2"><template x-for="p in profiles" :key="p.id"><div class="flex items-center gap-2 p-2 bg-slate-950 rounded-lg border border-slate-800"><div class="flex-1 min-w-0"><div class="text-xs font-bold truncate" x-text="p.name"></div><div class="text-[10px] text-slate-500 truncate" x-text="p.email"></div></div>
-                <select class="input !w-40 !py-1.5" :value="p.role" :disabled="p.id===currentUser?.id" @change="changeRole(p,$event.target.value)"><option value="pending">En attente</option><option value="technician">Technicien</option><option value="magasinier">Magasinier</option><option value="resp_maint">Resp. maintenance</option><option value="super_admin">Super admin</option></select></div></template></div></div>
+                <select class="input !w-40 !py-1.5" :value="p.role" :disabled="p.id===currentUser?.id" @change="changeRole(p,$event.target.value)"><option value="technician">Technicien</option><option value="magasinier">Magasinier</option><option value="resp_maint">Resp. maintenance</option><option value="super_admin">Super admin</option></select></div></template></div></div>
           </div>
         </section>
 
@@ -340,7 +362,7 @@ brand:{500:'#f97316',600:'#ea580c',700:'#c2410c'}
 let SB=null;
 function tetApp(){
 return {
-loginEmail:'',loginPassword:'',currentUser:null,authMode:'login',authError:'',authInfo:'',authBusy:false,showPwd:false,recovery:false,viewAs:'',cloud:false,flash:'',profiles:[],pwForm:{p1:'',p2:''},pwMsg:'',signup:{name:'',email:'',password:'',confirm:''},activeTab:'dashboard',globalSearch:'',searchResults:[],taskFilter:'Tous',modal:null,editingId:null,
+loginEmail:'',loginPassword:'',currentUser:null,authMode:'login',authError:'',authInfo:'',authBusy:false,showPwd:false,recovery:false,viewAs:'',cloud:false,onboardMode:'join',joinCode:'',companyName:'',inviteCode:'',flash:'',profiles:[],pwForm:{p1:'',p2:''},pwMsg:'',signup:{name:'',email:'',password:'',confirm:''},activeTab:'dashboard',globalSearch:'',searchResults:[],taskFilter:'Tous',modal:null,editingId:null,
 reportPreview:'',incidentMessage:'',aiOutput:'',aiQuestion:'',deviceMode:'pc',
 users:[
  {email:'tech@tet.dz',roleName:'Technicien Maintenance',role:'technician',defaultTab:'tasks'},
@@ -489,12 +511,31 @@ async signUp(){
   else{this.signup={name:'',email:'',password:'',confirm:''};this.setMode('login');this.loginEmail=email;this.authInfo='Compte créé. Confirmez votre adresse e-mail grâce au lien reçu, puis connectez-vous pour choisir votre rôle.'}
  }catch(e){this.authError='Inscription impossible. Vérifiez votre réseau.'}finally{this.authBusy=false}
 },
-async chooseRole(role){
- this.authError='';
- const {error}=await SB.rpc('set_my_role',{new_role:role});
- if(error){this.authError=error.message;return}
- const {data}=await SB.auth.getUser();if(data&&data.user)await this.startCloudSession(data.user,false);
- this.log('a rejoint l’équipe ('+(this.ROLE_META[role]||{}).roleName+')');
+async joinCompany(role){
+ this.authError='';const code=(this.joinCode||'').trim();
+ if(!code){this.authError='Saisissez le code d’invitation de votre entreprise.';return}
+ this.authBusy=true;
+ try{const {error}=await SB.rpc('join_company',{p_code:code,p_role:role});
+  if(error){this.authError=error.message;return}
+  const {data}=await SB.auth.getUser();if(data&&data.user)await this.startCloudSession(data.user,false);
+  this.joinCode='';this.log('a rejoint l’équipe ('+(this.ROLE_META[role]||{}).roleName+')');
+ }catch(e){this.authError='Action impossible. Vérifiez votre réseau.'}finally{this.authBusy=false}
+},
+async createCompany(){
+ this.authError='';const name=(this.companyName||'').trim();
+ if(name.length<2){this.authError='Saisissez le nom de votre entreprise.';return}
+ this.authBusy=true;
+ try{const {data:code,error}=await SB.rpc('create_company',{p_name:name});
+  if(error){this.authError=error.message;return}
+  const {data}=await SB.auth.getUser();if(data&&data.user)await this.startCloudSession(data.user,false);
+  this.companyName='';this.activeTab='settings';this.flashMsg('Entreprise créée. Code d’invitation de votre équipe : '+code);
+ }catch(e){this.authError='Action impossible. Vérifiez votre réseau.'}finally{this.authBusy=false}
+},
+async copyInvite(){try{await navigator.clipboard.writeText(this.inviteCode);this.flashMsg('Code copié.')}catch(e){this.flashMsg('Copiez le code manuellement : '+this.inviteCode)}},
+async regenInvite(){
+ const {data,error}=await SB.rpc('regenerate_invite_code');
+ if(error){this.flashMsg(error.message);return}
+ this.inviteCode=data;this.flashMsg('Nouveau code généré. L’ancien code ne fonctionne plus.');
 },
 async forgot(){
  this.authError='';this.authInfo='';const email=this.loginEmail.trim().toLowerCase();
@@ -544,7 +585,8 @@ async loadAll(){
  this.incidents=(i.data||[]).map(x=>({id:x.id,machine:x.machine,description:x.description,priority:x.priority,author:x.author,date:fr(x.created_at),status:x.status}));
  this.notifications=(n.data||[]).map(x=>({id:x.id,title:x.title,text:x.text,time:fr(x.created_at),read:x.read}));
  this.audit=((a&&a.data)||[]).map(x=>({id:x.id,user:x.user_name,action:x.action,date:fr(x.created_at)}));
- if(c.data&&c.data[0]&&c.data[0].settings)this.settings=c.data[0].settings;
+ if(c.data&&c.data[0]&&c.data[0].settings)this.settings={...this.settings,...c.data[0].settings};
+ if(this.currentUser&&['super_admin','resp_maint'].includes(this.currentUser.role)){const ic=await SB.rpc('get_invite_code');if(!ic.error)this.inviteCode=ic.data}
  this.profiles=pr.data||[];
  this.$nextTick(()=>lucide.createIcons());
 },
