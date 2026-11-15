@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full bg-slate-950 text-slate-100">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TET — Gestion de maintenance industrielle</title>
+<meta name="description" content="TET — plateforme de gestion de maintenance industrielle pour les équipes de terrain, les responsables maintenance et les magasiniers.">
+<meta name="robots" content="index, follow">
+<meta property="og:title" content="TET — Gestion de maintenance industrielle">
+<meta property="og:description" content="Suivez les comptes et les accès TET depuis un espace de maintenance industrielle sécurisé.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="TET — Gestion de maintenance industrielle">
+<meta name="twitter:description" content="Suivez les comptes et les accès TET depuis un espace de maintenance industrielle sécurisé.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23ea580c'/%3E%3Ctext x='32' y='42' font-family='Arial' font-weight='900' font-size='26' text-anchor='middle' fill='white'%3ETET%3C/text%3E%3C/svg%3E">
+<script>window.TET_CONFIG={SUPABASE_URL:'https://cecpfovlaxlmocgqswig.supabase.co',SUPABASE_ANON_KEY:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNlY3Bmb3ZsYXhsbW9jZ3Fzd2lnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTExMjQ1OTAsImV4cCI6MjEwNjcwMDU5MH0.s2H_WQVjIRKYzv7FfmhLcEDl5Rznw1bpt6zWSKxERog'};</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['Manrope','ui-sans-serif','system-ui','sans-serif'],mono:['DM Mono','ui-monospace','monospace']},colors:{
+industrial:{50:'#f8fafc',100:'#f1f5f9',500:'#64748b',800:'#1e293b',900:'#0f172a',950:'#020617'},
+brand:{500:'#f97316',600:'#ea580c',700:'#c2410c'}
+}}}};
+</script>
+<style>
+[x-cloak]{display:none!important}
+::-webkit-scrollbar{width:7px;height:7px}::-webkit-scrollbar-thumb{background:#334155;border-radius:8px}
+.modal-bg{background:rgba(2,6,23,.78);backdrop-filter:blur(4px)}
+.card{background:#0f172a;border:1px solid #1e293b;border-radius:14px}
+.input{width:100%;background:#020617;border:1px solid #1e293b;border-radius:9px;padding:.65rem .75rem;font-size:.78rem;color:#fff;outline:none}
+.input:focus{border-color:#f97316}
+.btn{border-radius:9px;padding:.58rem .8rem;font-size:.75rem;font-weight:700;transition:.15s}
+.btn-brand{background:#ea580c;color:#fff}.btn-brand:hover{background:#c2410c}
+.btn-dark{background:#1e293b;color:#e2e8f0}.btn-dark:hover{background:#334155}
+.btn-danger{background:#450a0a;color:#fca5a5;border:1px solid #7f1d1d}
+.badge{font-size:10px;font-weight:800;border-radius:999px;padding:.18rem .5rem;display:inline-flex}
+</style>
+</head>
+<body class="h-full font-sans antialiased" x-data="tetApp()" x-init="init()">
+
+<!-- AUTH : CONNEXION / INSCRIPTION -->
+<section x-show="!currentUser" x-cloak class="min-h-screen grid lg:grid-cols-2 bg-slate-950">
+  <div class="hidden lg:flex flex-col justify-between p-12 bg-slate-900 border-r border-slate-800">
+    <div class="flex items-center gap-3"><div class="w-11 h-11 rounded-xl bg-brand-600 flex items-center justify-center font-black text-white">TET</div><div class="font-black text-lg">TET</div></div>
+    <div>
+      <h2 class="text-3xl font-black leading-tight">Pilotez la maintenance<br>de votre usine.</h2>
+      <p class="text-sm text-slate-400 mt-3 max-w-md">Une seule plateforme pour les équipes terrain, les responsables maintenance et les magasiniers.</p>
+      <ul class="mt-8 space-y-3 text-sm text-slate-300">
+        <li class="flex gap-3"><span class="text-brand-500">●</span>Interventions et ordres de travail</li>
+        <li class="flex gap-3"><span class="text-brand-500">●</span>Signalement des pannes et rapports d'intervention</li>
+        <li class="flex gap-3"><span class="text-brand-500">●</span>Stock de pièces de rechange et seuils d'alerte</li>
+        <li class="flex gap-3"><span class="text-brand-500">●</span>Indicateurs de fiabilité par machine</li>
+      </ul>
+    </div>
+    <div class="text-[11px] text-slate-500 font-mono">Tafra Tech · TET</div>
+  </div>
+
+  <div class="flex items-center justify-center p-4 sm:p-8">
+    <div class="w-full max-w-md">
+      <div class="lg:hidden text-center mb-6"><div class="w-14 h-14 rounded-2xl bg-brand-600 mx-auto flex items-center justify-center font-black text-white text-2xl shadow-lg shadow-brand-600/30">TET</div><h1 class="text-xl font-black mt-3">TET — Contrôle industriel</h1></div>
+
+      <div class="card p-6 sm:p-8 shadow-2xl">
+        <div x-show="!recovery" class="grid grid-cols-2 gap-1 p-1 bg-slate-950 rounded-xl border border-slate-800 mb-6">
+          <button type="button" @click="setMode('login')" class="btn" :class="authMode==='login'?'btn-brand':'text-slate-400'">Connexion</button>
+          <button type="button" @click="setMode('signup')" class="btn" :class="authMode==='signup'?'btn-brand':'text-slate-400'">Créer un compte</button>
+        </div>
+
+        <div x-show="authError" x-cloak class="mb-4 text-xs rounded-lg border border-red-900 bg-red-950/60 text-red-300 px-3 py-2" role="alert" x-text="authError"></div>
+
+        <!-- Connexion -->
+        <div x-show="authInfo" x-cloak class="mb-4 text-xs rounded-lg border border-emerald-900 bg-emerald-950/60 text-emerald-300 px-3 py-2" x-text="authInfo"></div>
+
+        <!-- Nouveau mot de passe (lien de réinitialisation) -->
+        <form x-show="recovery" x-cloak @submit.prevent="setNewPassword()" class="space-y-4">
+          <h2 class="font-black">Nouveau mot de passe</h2>
+          <div><label class="text-xs text-slate-300" for="rc-pw">Nouveau mot de passe</label><input id="rc-pw" class="input mt-1" type="password" x-model="pwForm.p1" required minlength="8" autocomplete="new-password"></div>
+          <div><label class="text-xs text-slate-300" for="rc-pw2">Confirmation</label><input id="rc-pw2" class="input mt-1" type="password" x-model="pwForm.p2" required autocomplete="new-password"></div>
+          <button class="btn btn-brand w-full py-3" :disabled="authBusy">Enregistrer</button>
+        </form>
+
+        <form x-show="authMode==='login'&&!recovery" @submit.prevent="login()" class="space-y-4" autocomplete="on">
+          <div><label class="text-xs text-slate-300" for="li-email">Adresse e-mail professionnelle</label><input id="li-email" class="input mt-1" type="email" x-model="loginEmail" required autocomplete="email" placeholder="nom@entreprise.dz"></div>
+          <div><label class="text-xs text-slate-300" for="li-pw">Mot de passe</label>
+            <div class="relative"><input id="li-pw" class="input mt-1 pr-20" :type="showPwd?'text':'password'" x-model="loginPassword" required autocomplete="current-password" placeholder="••••••••"><button type="button" @click="showPwd=!showPwd" class="absolute right-2 top-3.5 text-[10px] text-slate-400 hover:text-white" x-text="showPwd?'Masquer':'Afficher'"></button></div></div>
+          <button class="btn btn-brand w-full py-3" :disabled="authBusy" x-text="authBusy?'Connexion…':'Se connecter →'"></button>
+          <p class="text-[11px] text-slate-500 text-center"><button type="button" @click="forgot()" class="text-slate-400 hover:text-white">Mot de passe oublié ?</button></p>
+          <p class="text-[11px] text-slate-500 text-center">Pas encore de compte ? <button type="button" @click="setMode('signup')" class="text-brand-500 font-bold">Créer un compte</button></p>
+        </form>
+
+        <!-- Inscription -->
+        <form x-show="authMode==='signup'&&!recovery" x-cloak @submit.prevent="signUp()" class="space-y-4" autocomplete="on">
+          <div><label class="text-xs text-slate-300" for="su-name">Nom complet</label><input id="su-name" class="input mt-1" x-model.trim="signup.name" required autocomplete="name" placeholder="Prénom Nom"></div>
+          <div><label class="text-xs text-slate-300" for="su-email">Adresse e-mail professionnelle</label><input id="su-email" class="input mt-1" type="email" x-model.trim="signup.email" required autocomplete="email" placeholder="nom@entreprise.dz"></div>
+                              <div class="grid sm:grid-cols-2 gap-3">
+            <div><label class="text-xs text-slate-300" for="su-pw">Mot de passe</label><input id="su-pw" class="input mt-1" :type="showPwd?'text':'password'" x-model="signup.password" required minlength="8" autocomplete="new-password" placeholder="8 caractères min."></div>
+            <div><label class="text-xs text-slate-300" for="su-pw2">Confirmation</label><input id="su-pw2" class="input mt-1" :type="showPwd?'text':'password'" x-model="signup.confirm" required autocomplete="new-password" placeholder="••••••••"></div>
+          </div>
+          <label class="flex items-center gap-2 text-[11px] text-slate-400"><input type="checkbox" x-model="showPwd"> Afficher les mots de passe</label>
+          <button class="btn btn-brand w-full py-3" :disabled="authBusy" x-text="authBusy?'Création…':'Créer mon compte →'"></button>
+          <p class="text-[11px] text-slate-500 text-center">Déjà un compte ? <button type="button" @click="setMode('login')" class="text-brand-500 font-bold">Se connecter</button></p>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CHOIX DU RÔLE (après création du compte) -->
+<section x-show="currentUser && currentUser.role==='pending'" x-cloak class="min-h-screen flex items-center justify-center p-4 bg-slate-950">
+  <div class="w-full max-w-lg card p-8 shadow-2xl">
+    <div class="w-12 h-12 rounded-xl bg-brand-600 flex items-center justify-center font-black text-white mb-4">TET</div>
+    <h1 class="text-xl font-black">Bienvenue <span x-text="currentUser?.name"></span></h1>
+    <p class="text-xs text-slate-400 mt-1">Choisissez votre rôle pour accéder à TET. Un administrateur pourra le modifier ensuite.</p>
+    <div class="space-y-3 mt-6">
+      <button type="button" @click="chooseRole('technician')" class="w-full text-left p-4 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl"><div class="text-sm font-bold text-brand-500">Technicien Maintenance</div><div class="text-[11px] text-slate-400 mt-1">Interventions, rapports, signalements de pannes.</div></button>
+      <button type="button" @click="chooseRole('resp_maint')" class="w-full text-left p-4 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl"><div class="text-sm font-bold text-brand-500">Responsable Maintenance</div><div class="text-[11px] text-slate-400 mt-1">Tableau de bord, machines, stock, audit.</div></button>
+      <button type="button" @click="chooseRole('magasinier')" class="w-full text-left p-4 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl"><div class="text-sm font-bold text-brand-500">Magasinier Stock</div><div class="text-[11px] text-slate-400 mt-1">Pièces de rechange, seuils et mouvements.</div></button>
+    </div>
+    <div x-show="authError" x-cloak class="mt-4 text-xs rounded-lg border border-red-900 bg-red-950/60 text-red-300 px-3 py-2" x-text="authError"></div>
+    <button type="button" @click="logout()" class="mt-5 text-[11px] text-slate-500 hover:text-white">Se déconnecter</button>
+  </div>
+</section>
+
+<!-- APP WRAPPER FOR SIMULATOR -->
+<div x-show="currentUser && currentUser.role!=='pending'" x-cloak class="min-h-screen bg-slate-950 flex justify-center items-start transition-all duration-300" :class="deviceMode === 'mobile' ? 'p-4 md:p-8' : 'p-0'">
+  <div class="w-full transition-all duration-300 bg-slate-950 flex shadow-2xl overflow-hidden" 
+       :class="deviceMode === 'mobile' ? 'max-w-[420px] h-[880px] rounded-[36px] border-[8px] border-slate-800 ring-1 ring-slate-700 my-auto flex-col relative' : 'min-h-screen flex-1'">
+    
+    <!-- MOBILE NOTCH / BAR SIMULATOR DECORATION -->
+    <div x-show="deviceMode === 'mobile'" class="bg-slate-900 text-slate-400 text-[10px] px-4 py-1.5 flex justify-between items-center border-b border-slate-800 select-none shrink-0">
+      <span class="font-bold">TET Mobile View</span>
+      <div class="flex items-center gap-2">
+        <span>11:04</span>
+        <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+      </div>
+    </div>
+
+    <!-- SIDEBAR (NAVIGATION RESTAURÉE) -->
+    <aside class="hidden lg:flex w-64 shrink-0 bg-slate-900 border-r border-slate-800 flex-col sticky top-0 h-screen" :class="deviceMode === 'mobile' ? 'hidden' : ''">
+      <div class="p-4 border-b border-slate-800 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-brand-600 flex items-center justify-center font-black">TET</div>
+        <div><div class="font-black">TET</div><div class="text-[10px] text-slate-500">Contrôle industriel</div></div>
+      </div>
+      <div class="px-3 py-3 border-b border-slate-800 overflow-y-auto max-h-[calc(100vh-180px)]">
+        <div class="text-[10px] uppercase text-slate-500 font-bold mb-2">Navigation</div>
+        <template x-for="tab in authorizedTabs()" :key="tab.id">
+          <button @click="go(tab.id)" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs mb-1 text-left"
+            :class="activeTab===tab.id?'bg-brand-600 text-white':'text-slate-400 hover:bg-slate-800 hover:text-white'">
+            <i :data-lucide="tab.icon" class="w-4 h-4"></i><span x-text="tab.name"></span>
+            <span x-show="tab.id==='notifications' && unread>0" class="ml-auto bg-red-500 text-white rounded-full px-1.5 text-[9px]" x-text="unread"></span>
+          </button>
+        </template>
+      </div>
+      <div class="mt-auto p-3 bg-slate-900 border-t border-slate-800">
+        <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 mb-2">
+          <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-full bg-brand-600/20 text-brand-500 flex items-center justify-center font-bold" x-text="initials()"></div>
+            <div class="min-w-0"><div class="text-xs font-bold truncate" x-text="currentUser?.name||currentUser?.roleName"></div><div class="text-[9px] text-slate-500 truncate" x-text="(currentUser?.name?currentUser.roleName+' · ':'')+currentUser?.email"></div></div>
+          </div>
+        </div>
+        <button @click="logout()" class="btn btn-danger w-full flex items-center justify-center gap-2"><i data-lucide="log-out" class="w-4 h-4"></i>Déconnexion</button>
+      </div>
+    </aside>
+
+    <div class="flex-1 min-w-0 flex flex-col h-full overflow-y-auto">
+      <header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur border-b border-slate-800 shrink-0">
+        <div class="h-16 px-4 lg:px-7 flex items-center justify-between gap-2">
+          <div class="flex items-center gap-3">
+            <div class="lg:hidden w-9 h-9 rounded-lg bg-brand-600 flex items-center justify-center font-black text-white shrink-0">T</div>
+            <div class="min-w-0"><div class="font-bold text-xs sm:text-sm truncate" x-text="tabTitle()"></div><div class="text-[10px] text-slate-500 truncate" x-text="currentUser?.roleName"></div></div>
+          </div>
+          
+          <div class="flex items-center gap-2">
+            <div class="hidden xl:flex relative">
+              <input class="input w-64 !py-2" placeholder="Machine, intervention, pièce..." x-model="globalSearch" @keydown.enter="searchAll()">
+              <button @click="searchAll()" class="absolute right-2 top-1.5 text-slate-500"><i data-lucide="search" class="w-4 h-4"></i></button>
+            </div>
+            <select x-show="currentUser?.role==='super_admin'" x-cloak class="input !w-auto !py-2 text-xs" :value="viewAs||'super_admin'" @change="setViewAs($event.target.value)" title="Voir l’application comme un autre rôle" aria-label="Vue par rôle">
+              <option value="super_admin">Vue : tous les accès</option><option value="resp_maint">Vue : Responsable Maintenance</option><option value="technician">Vue : Technicien</option><option value="magasinier">Vue : Magasinier</option>
+            </select>
+            <button @click="toggleDeviceMode()" class="btn btn-dark flex items-center gap-1.5 px-2.5 py-2 text-xs" :title="deviceMode === 'pc' ? 'Basculer en mode Téléphone' : 'Basculer en mode PC'">
+              <i :data-lucide="deviceMode === 'pc' ? 'smartphone' : 'monitor'" class="w-4 h-4 text-brand-500"></i>
+              <span class="hidden sm:inline" x-text="deviceMode === 'pc' ? 'Mode Tel' : 'Mode PC'"></span>
+            </button>
+            <button @click="logout()" class="btn btn-danger flex items-center gap-1.5 px-2.5 py-2 text-xs" title="Changer de compte / Déconnexion">
+              <i data-lucide="log-out" class="w-4 h-4"></i>
+              <span class="hidden sm:inline">Changer compte</span>
+            </button>
+            <button @click="go('notifications')" class="relative btn btn-dark p-2"><i data-lucide="bell" class="w-4 h-4"></i><span x-show="unread>0" class="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] rounded-full px-1.5" x-text="unread"></span></button>
+          </div>
+        </div>
+
+        <!-- Mobile / Tab Navigation Bar -->
+        <div class="overflow-x-auto border-t border-slate-800 px-2 py-2 flex gap-1 bg-slate-900/50">
+          <template x-for="tab in authorizedTabs()" :key="tab.id">
+            <button @click="go(tab.id)" class="btn whitespace-nowrap text-xs" :class="activeTab===tab.id?'btn-brand':'btn-dark'" x-text="tab.short||tab.name"></button>
+          </template>
+        </div>
+      </header>
+
+      <main class="p-4 lg:p-7 max-w-[1500px] mx-auto flex-1 w-full">
+
+        <!-- DASHBOARD -->
+        <section x-show="activeTab==='dashboard'" class="space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-3"><div><h1 class="text-xl font-black">Dashboard & KPI</h1><p class="text-xs text-slate-400 mt-1">Vue opérationnelle de la maintenance.</p></div>
+            <div class="flex gap-2"><button @click="exportData()" class="btn btn-dark">Exporter données</button><button @click="go('reports')" class="btn btn-brand">Nouveau rapport</button></div></div>
+          <div class="grid grid-cols-2 xl:grid-cols-5 gap-3">
+            <template x-for="k in kpis" :key="k.label"><div class="card p-4"><div class="text-[10px] text-slate-500" x-text="k.label"></div><div class="text-2xl font-black mt-1" x-text="k.value"></div><div class="text-[10px] mt-1" :class="k.good?'text-emerald-400':'text-amber-400'" x-text="k.delta"></div></div></template>
+          </div>
+          <div class="grid xl:grid-cols-3 gap-4">
+            <div class="card p-5 xl:col-span-2">
+              <div class="flex justify-between items-center mb-4"><h2 class="font-bold">Interventions récentes</h2><button @click="go('tasks')" class="text-xs text-brand-500">Voir tout</button></div>
+              <div class="space-y-2">
+                <template x-for="t in tasks.slice(0,6)" :key="t.id"><div class="p-3 bg-slate-950 rounded-lg border border-slate-800 flex items-center gap-3">
+                  <span class="badge" :class="priorityClass(t.priority)" x-text="t.priority"></span><div class="flex-1 min-w-0"><div class="text-xs font-bold truncate" x-text="t.title"></div><div class="text-[10px] text-slate-500" x-text="t.machine+' · '+t.technician"></div></div>
+                  <span class="text-[10px]" :class="statusClass(t.status)" x-text="t.status"></span>
+                </div></template>
+              </div>
+            </div>
+            <div class="card p-5"><div class="flex justify-between mb-4"><h2 class="font-bold">Machines problématiques</h2><button @click="go('machines')" class="text-xs text-brand-500">Tout voir</button></div>
+              <div class="space-y-3"><template x-for="m in machines.slice(0,4)" :key="m.id"><div><div class="flex justify-between text-xs"><span class="font-bold" x-text="m.name"></span><span class="text-slate-500" x-text="m.failures+' pannes'"></span></div><div class="h-1.5 bg-slate-800 rounded-full mt-2"><div class="h-1.5 bg-brand-600 rounded-full" :style="'width:'+Math.min(100,m.failures*10)+'%'"></div></div></div></template></div>
+            </div>
+          </div>
+          <div class="card p-5"><h2 class="font-bold mb-4">Techniciens</h2><div class="grid md:grid-cols-3 xl:grid-cols-5 gap-3"><template x-for="tech in technicians" :key="tech.name"><div class="p-3 bg-slate-950 rounded-xl border border-slate-800"><div class="flex items-center gap-2"><div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-xs font-bold" x-text="tech.name.split(' ').map(x=>x[0]).join('').slice(0,2)"></div><div><div class="text-xs font-bold" x-text="tech.name"></div><div class="text-[10px]" :class="tech.available?'text-emerald-400':'text-amber-400'" x-text="tech.available?'Disponible':'En intervention'"></div></div></div></div></template></div></div>
+        </section>
+
+        <!-- TASKS / TECHNICIAN -->
+        <section x-show="activeTab==='tasks'" class="space-y-5">
+          <div class="flex justify-between items-center"><div><h1 class="text-xl font-black">Interventions & tâches</h1><p class="text-xs text-slate-400">Espace terrain et suivi des ordres de travail.</p></div><button @click="openTask()" class="btn btn-brand">+ Nouvelle tâche</button></div>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <template x-for="s in taskStats()" :key="s.label"><div class="card p-4"><div class="text-[10px] text-slate-500" x-text="s.label"></div><div class="text-xl font-black" x-text="s.value"></div></div></template>
+          </div>
+          <div class="card overflow-hidden"><div class="p-4 border-b border-slate-800 flex gap-2 flex-wrap"><button @click="taskFilter='Tous'" class="btn" :class="taskFilter==='Tous'?'btn-brand':'btn-dark'">Toutes</button><template x-for="f in ['En cours','En attente','Terminées']"><button @click="taskFilter=f" class="btn" :class="taskFilter===f?'btn-brand':'btn-dark'" x-text="f"></button></template></div>
+            <div class="overflow-x-auto"><table class="w-full text-left text-xs"><thead class="text-slate-500 bg-slate-950"><tr><th class="p-3">Priorité</th><th>Tâche</th><th>Machine</th><th>Technicien</th><th>Statut</th><th class="p-3">Action</th></tr></thead><tbody class="divide-y divide-slate-800">
+            <template x-for="t in filteredTasks()" :key="t.id"><tr class="hover:bg-slate-950/70"><td class="p-3"><span class="badge" :class="priorityClass(t.priority)" x-text="t.priority"></span></td><td class="font-semibold" x-text="t.title"></td><td x-text="t.machine"></td><td x-text="t.technician||'Non assigné'"></td><td :class="statusClass(t.status)" x-text="t.status"></td><td class="p-3"><button @click="openTask(t)" class="text-brand-500 font-bold">Gérer</button></td></tr></template></tbody></table></div>
+          </div>
+        </section>
+
+        <!-- REPORT -->
+        <section x-show="activeTab==='reports'" class="space-y-5">
+          <div><h1 class="text-xl font-black">Rapport d'intervention</h1><p class="text-xs text-slate-400">Saisie, validation et génération assistée.</p></div>
+          <div class="grid xl:grid-cols-3 gap-4">
+            <form @submit.prevent="submitReport()" class="card p-5 xl:col-span-2 space-y-4">
+              <div class="grid md:grid-cols-2 gap-3"><div><label class="text-xs">Machine</label><select class="input mt-1" x-model="report.machine"><template x-for="m in machines" :key="m.id"><option x-text="m.name"></option></template></select></div>
+              <div><label class="text-xs">Type d'intervention</label><select class="input mt-1" x-model="report.type"><option>Corrective</option><option>Préventive</option><option>Inspection</option><option>Amélioration</option></select></div></div>
+              <div class="grid md:grid-cols-2 gap-3"><div><label class="text-xs">Début</label><input class="input mt-1" type="datetime-local" x-model="report.start"></div><div><label class="text-xs">Fin</label><input class="input mt-1" type="datetime-local" x-model="report.end"></div></div>
+              <div><label class="text-xs">Problème constaté</label><textarea class="input mt-1 h-24" x-model="report.problem"></textarea></div>
+              <div><label class="text-xs">Actions effectuées</label><textarea class="input mt-1 h-24" x-model="report.actions"></textarea></div>
+              <div><label class="text-xs">Pièces utilisées</label><input class="input mt-1" x-model="report.parts" placeholder="Ex. joint SKF, huile HV46 2 L..."></div>
+              <div><label class="text-xs">Résultat final</label><select class="input mt-1" x-model="report.result"><option>Machine remise en service</option><option>Surveillance nécessaire</option><option>Arrêt maintenu</option><option>Pièce à commander</option></select></div>
+              <div class="flex gap-2 flex-wrap"><button class="btn btn-brand">Soumettre le rapport</button><button type="button" @click="generateReport()" class="btn btn-dark">Générer via IA</button></div>
+            </form>
+            <div class="card p-5"><h2 class="font-bold mb-3">Édition technique</h2><div class="bg-slate-950 border border-slate-800 rounded-xl p-4 text-xs text-slate-300 whitespace-pre-wrap min-h-60" x-text="reportPreview||'Le rapport généré apparaîtra ici.'"></div><button x-show="reportPreview" @click="copyReport()" class="btn btn-dark mt-3">Copier</button></div>
+          </div>
+        </section>
+
+        <!-- REPORTS HISTORY -->
+        <section x-show="activeTab==='history'" class="space-y-5"><div class="flex justify-between"><div><h1 class="text-xl font-black">Historique des rapports</h1><p class="text-xs text-slate-400">Traçabilité des interventions enregistrées.</p></div></div>
+          <div class="card overflow-hidden"><table class="w-full text-left text-xs"><thead class="bg-slate-950 text-slate-500"><tr><th class="p-3">Date</th><th>Machine</th><th>Type</th><th>Technicien</th><th>Résultat</th></tr></thead><tbody class="divide-y divide-slate-800"><template x-for="r in reports" :key="r.id"><tr><td class="p-3" x-text="r.date"></td><td x-text="r.machine"></td><td x-text="r.type"></td><td x-text="r.technician"></td><td x-text="r.result"></td></tr></template></tbody></table></div>
+        </section>
+
+        <!-- MACHINES -->
+        <section x-show="activeTab==='machines'" class="space-y-5">
+          <div class="flex justify-between items-center"><div><h1 class="text-xl font-black">Parc machines & QR</h1><p class="text-xs text-slate-400">Fiches équipements, état, pannes et maintenance.</p></div><button @click="openMachine()" class="btn btn-brand">+ Nouvelle machine</button></div>
+          <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-4"><template x-for="m in machines" :key="m.id"><div class="card p-5"><div class="flex justify-between gap-3"><div><div class="font-bold text-sm" x-text="m.name"></div><div class="text-[10px] text-slate-500 mt-1" x-text="m.area+' · '+m.failures+' pannes'"></div></div><span class="badge" :class="machineStatusClass(m.status)" x-text="m.status"></span></div><div class="grid grid-cols-2 gap-2 mt-4 text-[10px]"><div class="bg-slate-950 rounded-lg p-2">MTBF<br><b class="text-sm" x-text="m.mtbf"></b></div><div class="bg-slate-950 rounded-lg p-2">Révision<br><b class="text-sm" x-text="m.revision"></b></div></div><div class="flex gap-2 mt-4"><button @click="openMachine(m)" class="btn btn-dark flex-1">Modifier</button><button @click="analyzeMachine(m)" class="btn btn-brand">IA</button></div></div></template></div>
+        </section>
+
+        <!-- ANALYTICS -->
+        <section x-show="activeTab==='analytics'" class="space-y-5"><div><h1 class="text-xl font-black">Données analytiques par machine</h1><p class="text-xs text-slate-400">Indicateurs de fiabilité et état des révisions.</p></div>
+          <div class="card overflow-hidden"><table class="w-full text-left text-xs"><thead class="bg-slate-950 text-slate-500"><tr><th class="p-3">Machine</th><th>Pannes</th><th>Dernière anomalie</th><th>MTBF</th><th>Révision</th></tr></thead><tbody class="divide-y divide-slate-800"><template x-for="m in machines" :key="m.id"><tr><td class="p-3 font-bold" x-text="m.name"></td><td x-text="m.failures"></td><td x-text="m.lastIssue"></td><td x-text="m.mtbf"></td><td x-text="m.revision"></td></tr></template></tbody></table></div>
+        </section>
+
+        <!-- INVENTORY -->
+        <section x-show="activeTab==='inventory'" class="space-y-5">
+          <div class="flex justify-between items-center"><div><h1 class="text-xl font-black">Stock & pièces de rechange</h1><p class="text-xs text-slate-400">Seuils, mouvements et pièces à commander.</p></div><button @click="openPart()" class="btn btn-brand">+ Nouvelle pièce</button></div>
+          <div class="grid grid-cols-2 xl:grid-cols-4 gap-3"><div class="card p-4"><div class="text-[10px] text-slate-500">Références</div><div class="text-2xl font-black" x-text="parts.length"></div></div><div class="card p-4"><div class="text-[10px] text-slate-500">À commander</div><div class="text-2xl font-black text-red-400" x-text="parts.filter(p=>p.qty<=p.min).length"></div></div><div class="card p-4"><div class="text-[10px] text-slate-500">Valeur estimée</div><div class="text-2xl font-black" x-text="stockValue()+' DZD'"></div></div><div class="card p-4"><div class="text-[10px] text-slate-500">Alertes</div><div class="text-2xl font-black text-amber-400" x-text="parts.filter(p=>p.qty<=p.min).length"></div></div></div>
+          <div class="card overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-left text-xs"><thead class="bg-slate-950 text-slate-500"><tr><th class="p-3">Pièce</th><th>Référence</th><th>Machine</th><th>Stock</th><th>Seuil</th><th>Statut</th><th class="p-3">Action</th></tr></thead><tbody class="divide-y divide-slate-800"><template x-for="p in parts" :key="p.id"><tr><td class="p-3 font-bold" x-text="p.name"></td><td class="font-mono text-brand-500" x-text="p.ref"></td><td x-text="p.machine"></td><td class="font-bold" x-text="p.qty"></td><td x-text="p.min"></td><td><span class="badge" :class="p.qty<=0?'bg-red-500/10 text-red-400':p.qty<=p.min?'bg-amber-500/10 text-amber-400':'bg-emerald-500/10 text-emerald-400'" x-text="partStatus(p)"></span></td><td class="p-3"><button @click="openPart(p)" class="text-brand-500 font-bold">Modifier</button></td></tr></template></tbody></table></div></div>
+        </section>
+
+        <!-- INCIDENTS -->
+        <section x-show="activeTab==='incidents'" class="space-y-5">
+          <div><h1 class="text-xl font-black">Signaler un problème</h1><p class="text-xs text-slate-400">Transmission au responsable et pré-diagnostic.</p></div>
+          <form @submit.prevent="submitIncident()" class="card p-5 max-w-3xl space-y-4"><div class="grid md:grid-cols-2 gap-3"><div><label class="text-xs">Machine concernée</label><select class="input mt-1" x-model="incident.machine"><template x-for="m in machines" :key="m.id"><option x-text="m.name"></option></template></select></div><div><label class="text-xs">Priorité</label><select class="input mt-1" x-model="incident.priority"><option>Critique</option><option>Urgent</option><option>Normal</option><option>Faible</option></select></div></div><div><label class="text-xs">Description</label><textarea class="input mt-1 h-28" x-model="incident.description" required></textarea></div><div><label class="text-xs">Localisation précise</label><input class="input mt-1" x-model="incident.location" placeholder="Ex. zone Nord, palier gauche..."></div><div class="flex gap-2"><button class="btn btn-brand">Envoyer le signalement</button><button type="button" @click="diagnoseIncident()" class="btn btn-dark">Envoyer Diag IA</button></div><div x-show="incidentMessage" class="text-xs text-emerald-400" x-text="incidentMessage"></div></form>
+          <div class="card p-5"><h2 class="font-bold mb-3">Signalements récents</h2><div class="space-y-2"><template x-for="i in incidents" :key="i.id"><div class="p-3 bg-slate-950 border border-slate-800 rounded-lg flex items-center gap-3"><span class="badge" :class="priorityClass(i.priority)" x-text="i.priority"></span><div class="flex-1"><div class="text-xs font-bold" x-text="i.machine+' — '+i.description"></div><div class="text-[10px] text-slate-500" x-text="i.author+' · '+i.date"></div></div><span class="text-[10px] text-slate-400" x-text="i.status"></span></div></template></div></div>
+        </section>
+
+        <!-- AI -->
+        <section x-show="activeTab==='ai'" class="space-y-5"><div><h1 class="text-xl font-black">Assistant IA TET</h1><p class="text-xs text-slate-400">Assistant orienté maintenance électromécanique. Mode prototype local.</p></div>
+          <div class="grid grid-cols-2 xl:grid-cols-4 gap-3"><template x-for="a in aiActions" :key="a.label"><button @click="runAI(a.action)" class="card p-4 text-left hover:border-brand-600"><div class="text-lg" x-text="a.icon"></div><div class="text-xs font-bold mt-2" x-text="a.label"></div><div class="text-[10px] text-slate-500 mt-1" x-text="a.desc"></div></button></template></div>
+          <div class="card p-5"><div class="flex justify-between mb-3"><h2 class="font-bold">Conversation</h2><span class="text-[10px] text-emerald-400">● En ligne</span></div><div class="bg-slate-950 rounded-xl p-4 min-h-48 text-xs whitespace-pre-wrap" x-text="aiOutput||'Bonjour ! Je suis l’assistant IA de TET. Sélectionnez une action ou posez une question technique.'"></div><div class="flex gap-2 mt-3"><input class="input" x-model="aiQuestion" @keydown.enter="askAI()" placeholder="Ex. Pourquoi une pompe peut-elle vibrer ?"><button @click="askAI()" class="btn btn-brand">Envoyer</button></div></div>
+        </section>
+
+        <!-- NOTIFICATIONS -->
+        <section x-show="activeTab==='notifications'" class="space-y-5"><div class="flex justify-between"><div><h1 class="text-xl font-black">Notifications</h1><p class="text-xs text-slate-400" x-text="unread+' notification(s) non lue(s)'"></p></div><button @click="markAllRead()" class="btn btn-dark">Tout marquer comme lu</button></div>
+          <div class="space-y-2"><template x-for="n in notifications" :key="n.id"><button @click="markRead(n)" class="w-full text-left card p-4 flex gap-3" :class="!n.read?'border-brand-600/50':''"><div class="w-8 h-8 rounded-lg bg-slate-950 flex items-center justify-center shrink-0"><i data-lucide="bell" class="w-4 h-4"></i></div><div class="flex-1"><div class="text-xs font-bold" x-text="n.title"></div><div class="text-[10px] text-slate-500 mt-1" x-text="n.text"></div></div><span class="text-[10px] text-slate-600" x-text="n.time"></span></button></template></div>
+        </section>
+
+        <!-- AUDIT -->
+        <section x-show="activeTab==='audit'" class="space-y-5"><div><h1 class="text-xl font-black">Journal d'audit & traçabilité</h1><p class="text-xs text-slate-400">Historique local des actions critiques.</p></div>
+          <div class="card p-5 space-y-2"><template x-for="a in audit" :key="a.id"><div class="p-3 bg-slate-950 rounded-lg border border-slate-800 text-xs"><span class="font-bold" x-text="a.user"></span> <span x-text="a.action"></span> <span class="text-slate-500" x-text="'('+a.date+')'"></span></div></template></div>
+        </section>
+
+        <!-- SETTINGS -->
+        <section x-show="activeTab==='settings'" class="space-y-5"><div><h1 class="text-xl font-black">Paramètres</h1><p class="text-xs text-slate-400">Configuration locale de TET.</p></div>
+          <div class="grid xl:grid-cols-2 gap-4"><div class="card p-5 space-y-4"><h2 class="font-bold">Informations usine</h2><input class="input" placeholder="Nom de l'usine" x-model="settings.factory"><input class="input" type="number" placeholder="Nombre de techniciens" x-model="settings.technicians"><select class="input" x-model="settings.language"><option>Français</option><option>Arabe</option><option>English</option></select><button @click="saveSettings()" class="btn btn-brand">Sauvegarder</button></div>
+          <div class="card p-5 space-y-3"><h2 class="font-bold">Données</h2><p class="text-xs text-slate-400" x-text="cloud?'Les données sont synchronisées avec la base Supabase de votre entreprise.':'Mode démonstration : les données restent dans le stockage local de ce navigateur.'"></p><button @click="exportData()" class="btn btn-dark w-full">Exporter JSON</button><button x-show="!cloud" @click="resetData()" class="btn btn-danger w-full">Réinitialiser les données locales</button></div></div>
+          <div x-show="cloud" x-cloak class="grid xl:grid-cols-2 gap-4">
+            <div class="card p-5 space-y-3"><h2 class="font-bold">Mon compte</h2><p class="text-xs text-slate-400" x-text="currentUser?.email"></p>
+              <input class="input" type="password" placeholder="Nouveau mot de passe (8 caractères min.)" x-model="pwForm.p1" autocomplete="new-password"><input class="input" type="password" placeholder="Confirmation" x-model="pwForm.p2" autocomplete="new-password">
+              <button @click="changePassword()" class="btn btn-brand">Changer le mot de passe</button><div class="text-xs text-emerald-400" x-show="pwMsg" x-text="pwMsg"></div></div>
+            <div class="card p-5"><h2 class="font-bold mb-3">Équipe et rôles</h2>
+              <div class="space-y-2"><template x-for="p in profiles" :key="p.id"><div class="flex items-center gap-2 p-2 bg-slate-950 rounded-lg border border-slate-800"><div class="flex-1 min-w-0"><div class="text-xs font-bold truncate" x-text="p.name"></div><div class="text-[10px] text-slate-500 truncate" x-text="p.email"></div></div>
+                <select class="input !w-40 !py-1.5" :value="p.role" :disabled="p.id===currentUser?.id" @change="changeRole(p,$event.target.value)"><option value="pending">En attente</option><option value="technician">Technicien</option><option value="magasinier">Magasinier</option><option value="resp_maint">Resp. maintenance</option><option value="super_admin">Super admin</option></select></div></template></div></div>
+          </div>
+        </section>
+
+        <!-- SEARCH -->
+        <section x-show="activeTab==='search'" class="space-y-5"><div><h1 class="text-xl font-black">Recherche globale</h1><p class="text-xs text-slate-400" x-text="'Résultats pour : '+globalSearch"></p></div><div class="grid md:grid-cols-2 gap-3"><template x-for="r in searchResults" :key="r.type+r.id"><button @click="go(r.tab)" class="card p-4 text-left"><div class="text-[10px] text-brand-500 uppercase font-bold" x-text="r.type"></div><div class="text-sm font-bold mt-1" x-text="r.title"></div><div class="text-[10px] text-slate-500 mt-1" x-text="r.meta"></div></button></template></div></section>
+      </main>
+    </div>
+  </div>
+</div>
+
+<div x-show="flash" x-cloak class="fixed bottom-4 left-1/2 -translate-x-1/2 z-[200] max-w-sm bg-slate-800 border border-slate-700 text-xs text-white rounded-xl px-4 py-3 shadow-2xl" x-text="flash"></div>
+
+<!-- MODAL -->
+<div x-show="modal" x-cloak class="fixed inset-0 z-[100] modal-bg flex items-center justify-center p-4" @keydown.escape.window="modal=null">
+  <div class="card w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
+    <div class="flex justify-between items-center mb-5"><h2 class="font-black text-lg" x-text="modalTitle()"></h2><button @click="modal=null" class="text-slate-500 hover:text-white">✕</button></div>
+    <template x-if="modal==='machine'"><form @submit.prevent="saveMachine()" class="space-y-3"><input class="input" placeholder="Nom de la machine" x-model="machineForm.name" required><input class="input" placeholder="Atelier / zone" x-model="machineForm.area" required><input class="input" placeholder="Date de révision" x-model="machineForm.revision"><select class="input" x-model="machineForm.status"><option>Bon état</option><option>Normal</option><option>Attention</option><option>Critique</option></select><div class="flex gap-2"><button class="btn btn-brand">Enregistrer</button><button type="button" @click="modal=null" class="btn btn-dark">Annuler</button></div></form></template>
+    <template x-if="modal==='part'"><form @submit.prevent="savePart()" class="space-y-3"><input class="input" placeholder="Nom du composant" x-model="partForm.name" required><input class="input" placeholder="Référence" x-model="partForm.ref" required><input class="input" placeholder="Machine liée" x-model="partForm.machine"><div class="grid grid-cols-2 gap-3"><input class="input" type="number" placeholder="Quantité" x-model.number="partForm.qty"><input class="input" type="number" placeholder="Seuil minimal" x-model.number="partForm.min"></div><div class="flex gap-2"><button class="btn btn-brand">Enregistrer</button><button type="button" @click="modal=null" class="btn btn-dark">Annuler</button></div></form></template>
+    <template x-if="modal==='task'"><form @submit.prevent="saveTask()" class="space-y-3"><input class="input" placeholder="Description de la tâche" x-model="taskForm.title" required><select class="input" x-model="taskForm.machine"><template x-for="m in machines" :key="m.id"><option x-text="m.name"></option></template></select><select class="input" x-model="taskForm.priority"><option>Critique</option><option>Urgent</option><option>Normal</option><option>Faible</option></select><select class="input" x-model="taskForm.status"><option>En attente</option><option>En cours</option><option>Terminées</option></select><input class="input" placeholder="Technicien" x-model="taskForm.technician"><div class="flex gap-2"><button class="btn btn-brand">Enregistrer</button><button type="button" @click="modal=null" class="btn btn-dark">Annuler</button></div></form></template>
+  </div>
+</div>
+
+<script>
+let SB=null;
+function tetApp(){
+return {
+loginEmail:'',loginPassword:'',currentUser:null,authMode:'login',authError:'',authInfo:'',authBusy:false,showPwd:false,recovery:false,viewAs:'',cloud:false,flash:'',profiles:[],pwForm:{p1:'',p2:''},pwMsg:'',signup:{name:'',email:'',password:'',confirm:''},activeTab:'dashboard',globalSearch:'',searchResults:[],taskFilter:'Tous',modal:null,editingId:null,
+reportPreview:'',incidentMessage:'',aiOutput:'',aiQuestion:'',deviceMode:'pc',
+users:[
+ {email:'tech@tet.dz',roleName:'Technicien Maintenance',role:'technician',defaultTab:'tasks'},
+ {email:'maint@tet.dz',roleName:'Responsable Maintenance',role:'resp_maint',defaultTab:'dashboard'},
+ {email:'mag@tet.dz',roleName:'Magasinier Stock',role:'magasinier',defaultTab:'inventory'},
+ {email:'admin@tet.dz',roleName:'Super Administrateur',role:'super_admin',defaultTab:'dashboard'}
+],
+machines:[
+ {id:1,name:'Pompe hydraulique P-03',area:'Atelier A',failures:7,lastIssue:"Aujourd'hui",mtbf:'4,2 jours',revision:'En retard',status:'Critique'},
+ {id:2,name:'Convoyeur C-12',area:'Atelier B',failures:4,lastIssue:'Il y a 3 h',mtbf:'11,5 jours',revision:'15/07/2026',status:'Attention'},
+ {id:3,name:'Moteur M-07',area:'Atelier C',failures:0,lastIssue:'Il y a 3 mois',mtbf:'62,0 jours',revision:'15/09/2026',status:'Bon état'},
+ {id:4,name:'Compresseur CP-01',area:'Atelier A',failures:2,lastIssue:'Il y a 15 jours',mtbf:'33,4 jours',revision:'20/07/2026',status:'Normal'},
+ {id:5,name:'Transformateur TR-02',area:'Électrique',failures:0,lastIssue:'Il y a 4 mois',mtbf:'95,0 jours',revision:'10/06/2026',status:'Bon état'},
+ {id:6,name:'Tour CNC T-01',area:'Atelier C',failures:1,lastIssue:'Il y a 20 jours',mtbf:'48,0 jours',revision:'05/06/2026',status:'Normal'}
+],
+tasks:[
+ {id:1,title:'Pompe hydraulique P-03 bloquée',machine:'P-03 · Atelier A',technician:'Karim B.',priority:'Critique',status:'En cours'},
+ {id:2,title:'Courroie du convoyeur C-12 usée',machine:'C-12 · Atelier B',technician:'Yacine M.',priority:'Urgent',status:'En cours'},
+ {id:3,title:'Révision préventive du moteur M-07',machine:'M-07 · Atelier C',technician:'Sofiane R.',priority:'Normal',status:'En cours'},
+ {id:4,title:'Vérification capteurs température',machine:'TR-02 · Électrique',technician:'',priority:'Normal',status:'En attente'},
+ {id:5,title:'Mise à jour schémas électriques',machine:'Général',technician:'',priority:'Faible',status:'En attente'},
+ {id:6,title:'Lubrification des paliers L-02',machine:'L-02 · Atelier A',technician:'Karim B.',priority:'Faible',status:'Terminées'},
+ {id:7,title:'Nettoyage du filtre du compresseur',machine:'CP-01 · Atelier B',technician:'Amine B.',priority:'Normal',status:'Terminées'}
+],
+parts:[
+ {id:1,name:'Joint SKF 35x47x7',ref:'SKF-35477',machine:'P-03',qty:2,min:5,price:1800},
+ {id:2,name:'Filtre hydraulique HF-230',ref:'HF-230',machine:'P-03',qty:3,min:5,price:4200},
+ {id:3,name:'Huile hydraulique HV46 5L',ref:'HV46-5L',machine:'P-03',qty:1,min:4,price:3800},
+ {id:4,name:'Courroie V-belt A42',ref:'VB-A42',machine:'C-12',qty:2,min:3,price:2500},
+ {id:5,name:'Roulement 6205-2RS',ref:'SKF-6205',machine:'M-07',qty:12,min:5,price:1600},
+ {id:6,name:'Vis M12×50 inox',ref:'VM12-50',machine:'Général',qty:45,min:20,price:150},
+ {id:7,name:'Fusible 32A',ref:'FUS-32A',machine:'TR-02',qty:0,min:5,price:700}
+],
+reports:[
+ {id:1,date:'01/10/2026',machine:'Pompe hydraulique P-03',type:'Corrective',technician:'Karim B.',result:'Machine remise en service'},
+ {id:2,date:'30/09/2026',machine:'Compresseur CP-01',type:'Préventive',technician:'Amine B.',result:'Machine remise en service'}
+],
+incidents:[
+ {id:1,machine:'Pompe P-03',description:"fuite d'huile",priority:'Critique',author:'Karim B.',date:'Il y a 1 h',status:'Nouveau'},
+ {id:2,machine:'C-12',description:'courroie craquelée',priority:'Urgent',author:'Yacine M.',date:'Il y a 3 h',status:'Nouveau'},
+ {id:3,machine:'CP-01',description:'bruit inhabituel',priority:'Normal',author:'Amine B.',date:'Hier',status:'Traité'}
+],
+notifications:[
+ {id:1,title:'Pompe P-03 critique',text:'Une intervention urgente est requise.',time:'Il y a 1 h',read:false},
+ {id:2,title:'Stock faible',text:'Deux pièces sont sous le seuil minimal.',time:'Il y a 2 h',read:false},
+ {id:3,title:'Rapport validé',text:'Le rapport CP-01 a été enregistré.',time:'Hier',read:false},
+ {id:4,title:'Révision en retard',text:'La pompe P-03 nécessite une révision.',time:'Hier',read:false}
+],
+audit:[
+ {id:1,user:'Super Administrateur',action:"a modifié l'état de la machine M-102",date:'01/10/2026 14:20'},
+ {id:2,user:'Responsable Maintenance',action:'a créé un rapport d’intervention',date:'01/10/2026 12:04'},
+ {id:3,user:'Magasinier Stock',action:'a signalé un stock critique FUS-32A',date:'30/09/2026 16:42'}
+],
+settings:{factory:'TET — Usine pilote',technicians:5,language:'Français'},
+report:{machine:'Pompe hydraulique P-03',type:'Corrective',start:'',end:'',problem:'',actions:'',parts:'',result:'Machine remise en service'},
+incident:{machine:'Pompe hydraulique P-03',priority:'Critique',description:'',location:''},
+taskForm:{title:'',machine:'Pompe hydraulique P-03',priority:'Normal',status:'En attente',technician:''},
+machineForm:{name:'',area:'',revision:'',status:'Bon état'},
+partForm:{name:'',ref:'',machine:'Général',qty:0,min:0},
+aiActions:[
+ {icon:'🔴',label:'Analyser une panne',desc:'Pré-diagnostic de la pompe P-03',action:'pump'},
+ {icon:'📅',label:'Plan préventif',desc:'Priorités du mois',action:'preventive'},
+ {icon:'🔊',label:'Diagnostiquer un bruit',desc:'Méthode de diagnostic',action:'noise'},
+ {icon:'📦',label:'Optimiser le stock',desc:'Pièces à commander',action:'stock'},
+ {icon:'📊',label:'Rapport hebdomadaire',desc:'Synthèse maintenance',action:'weekly'}
+],
+
+
+ROLE_META:{
+ technician:{roleName:'Technicien Maintenance',defaultTab:'tasks'},
+ resp_maint:{roleName:'Responsable Maintenance',defaultTab:'dashboard'},
+ magasinier:{roleName:'Magasinier Stock',defaultTab:'inventory'},
+ super_admin:{roleName:'Super Administrateur',defaultTab:'dashboard'},
+ pending:{roleName:'En attente',defaultTab:'dashboard'}
+},
+demoTechs:[{name:'Karim Benali',available:false},{name:'Yacine Mansouri',available:true},{name:'Sofiane Rahmani',available:false},{name:'Amine Bouzidi',available:true},{name:'Mourad Khelif',available:false}],
+get technicians(){
+ if(!this.cloud)return this.demoTechs;
+ return this.profiles.filter(p=>p.role==='technician').map(p=>{const f=(p.name||'').split(' ')[0].toLowerCase();return {name:p.name,available:!this.tasks.some(t=>t.status==='En cours'&&t.technician&&f&&t.technician.toLowerCase().includes(f))}});
+},
+get kpis(){
+ const crit=this.machines.filter(m=>m.status==='Critique').length,run=this.tasks.filter(t=>t.status==='En cours').length,wait=this.tasks.filter(t=>t.status==='En attente').length,low=this.parts.filter(p=>p.qty<=p.min).length,inc=this.incidents.filter(i=>i.status!=='Traité').length,fail=this.machines.reduce((a,m)=>a+(Number(m.failures)||0),0);
+ return [
+  {label:'Machines critiques',value:crit,delta:'sur '+this.machines.length+' machines',good:crit===0},
+  {label:'Interventions en cours',value:run,delta:wait+' en attente',good:true},
+  {label:'Pièces à commander',value:low,delta:low?'Sous le seuil minimal':'Stock conforme',good:low===0},
+  {label:'Signalements ouverts',value:inc,delta:inc?'À traiter':'Aucun en attente',good:inc===0},
+  {label:'Pannes enregistrées',value:fail,delta:this.reports.length+' rapport(s)',good:true}
+ ];
+},
+flashMsg(m){this.flash=m;clearTimeout(this._ft);this._ft=setTimeout(()=>{this.flash=''},6000)},
+async init(){
+ const cfg=window.TET_CONFIG||{};
+ try{if(window.supabase&&cfg.SUPABASE_URL&&cfg.SUPABASE_ANON_KEY){SB=window.supabase.createClient(cfg.SUPABASE_URL,cfg.SUPABASE_ANON_KEY)}}catch(e){SB=null}
+ if(SB){SB.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY')this.recovery=true})}
+ let demo=null;try{const sv=localStorage.getItem('tet_current_user');if(sv){const u=JSON.parse(sv);if(u&&u.demo)demo=u}}catch(e){}
+ if(demo){this.startDemo(demo,false)}
+ else if(SB){try{await new Promise(r=>setTimeout(r,50));const {data}=await SB.auth.getSession();if(data&&data.session&&!this.recovery)await this.startCloudSession(data.session.user,false)}catch(e){}}
+ setInterval(()=>{if(this.cloud&&this.currentUser&&this.currentUser.role!=='pending'&&!this.modal)this.loadAll()},30000);
+ this.$nextTick(()=>lucide.createIcons());
+},
+
+persist(){if(this.cloud)return;localStorage.setItem('tet_merged_data',JSON.stringify({machines:this.machines,tasks:this.tasks,parts:this.parts,reports:this.reports,incidents:this.incidents,notifications:this.notifications,audit:this.audit,settings:this.settings}))},
+
+setViewAs(r){this.viewAs=(r==='super_admin')?'':r;const m=this.ROLE_META[r]||this.ROLE_META.super_admin;this.activeTab=m.defaultTab;this.$nextTick(()=>lucide.createIcons())},
+setMode(m){this.authMode=m;this.authError='';this.authInfo=''},
+startDemo(u,fresh=true){
+ this.cloud=false;
+ try{const data=localStorage.getItem('tet_merged_data');if(data){const d=JSON.parse(data);['machines','tasks','parts','reports','incidents','notifications','audit','settings'].forEach(k=>{if(d[k])this[k]=d[k]})}}catch(e){}
+ this.currentUser={email:u.email,name:'',roleName:u.roleName,role:u.role,defaultTab:u.defaultTab,demo:true};
+ try{localStorage.setItem('tet_current_user',JSON.stringify(this.currentUser))}catch(e){}
+ this.activeTab=u.defaultTab||'dashboard';this.authError='';
+ if(fresh)this.log('s’est connecté à TET (démonstration)');
+ this.$nextTick(()=>lucide.createIcons());
+},
+quickLogin(email){const u=this.users.find(x=>x.email===email);if(u)this.startDemo(u)},
+async startCloudSession(user,announce=true){
+ const {data:prof,error}=await SB.from('profiles').select('*').eq('id',user.id).single();
+ if(error||!prof){this.authError='Profil introuvable. Réessayez ou contactez l’administrateur.';await SB.auth.signOut();return false}
+ this.cloud=true;
+ const meta=this.ROLE_META[prof.role]||this.ROLE_META.pending;
+ this.currentUser={id:prof.id,email:prof.email,name:prof.name,role:prof.role,roleName:meta.roleName,defaultTab:meta.defaultTab,company_id:prof.company_id,cloud:true};
+ if(prof.role!=='pending'){await this.loadAll();this.activeTab=meta.defaultTab;if(announce)this.log('s’est connecté à TET')}
+ this.authError='';this.authInfo='';this.loginPassword='';this.signup={name:'',email:'',password:'',confirm:''};this.showPwd=false;
+ this.$nextTick(()=>lucide.createIcons());return true;
+},
+async login(){
+ this.authError='';this.authInfo='';
+ if(!SB){this.authError='Service indisponible. Utilisez un accès démonstration.';return}
+ this.authBusy=true;
+ try{const {data,error}=await SB.auth.signInWithPassword({email:this.loginEmail.trim().toLowerCase(),password:this.loginPassword});
+  if(error){this.authError=/confirm/i.test(error.message)?'Confirmez d’abord votre adresse e-mail (lien reçu par e-mail).':'E-mail ou mot de passe incorrect.';return}
+  await this.startCloudSession(data.user)}catch(e){this.authError='Connexion impossible. Vérifiez votre réseau.'}finally{this.authBusy=false}
+},
+async signUp(){
+ this.authError='';this.authInfo='';const f=this.signup;const email=(f.email||'').trim().toLowerCase();
+ if(!SB){this.authError='Service indisponible.';return}
+ if(!f.name||f.name.trim().length<2){this.authError='Saisissez votre nom complet.';return}
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){this.authError='Adresse e-mail invalide.';return}
+ if((f.password||'').length<8){this.authError='Le mot de passe doit contenir au moins 8 caractères.';return}
+ if(f.password!==f.confirm){this.authError='Les mots de passe ne correspondent pas.';return}
+ this.authBusy=true;
+ try{const {data,error}=await SB.auth.signUp({email,password:f.password,options:{data:{name:f.name.trim()}}});
+  if(error){this.authError=/registered|exists/i.test(error.message)?'Un compte existe déjà avec cet e-mail.':error.message;return}
+  if(data.session){await this.startCloudSession(data.user,false)}
+  else{this.signup={name:'',email:'',password:'',confirm:''};this.setMode('login');this.loginEmail=email;this.authInfo='Compte créé. Confirmez votre adresse e-mail grâce au lien reçu, puis connectez-vous pour choisir votre rôle.'}
+ }catch(e){this.authError='Inscription impossible. Vérifiez votre réseau.'}finally{this.authBusy=false}
+},
+async chooseRole(role){
+ this.authError='';
+ const {error}=await SB.rpc('set_my_role',{new_role:role});
+ if(error){this.authError=error.message;return}
+ const {data}=await SB.auth.getUser();if(data&&data.user)await this.startCloudSession(data.user,false);
+ this.log('a rejoint l’équipe ('+(this.ROLE_META[role]||{}).roleName+')');
+},
+async forgot(){
+ this.authError='';this.authInfo='';const email=this.loginEmail.trim().toLowerCase();
+ if(!SB||!email){this.authError='Saisissez votre e-mail ci-dessus.';return}
+ const {error}=await SB.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
+ if(error){this.authError=error.message;return}
+ this.authInfo='Si un compte existe pour cette adresse, un e-mail de réinitialisation vient d’être envoyé.';
+},
+async setNewPassword(){
+ this.authError='';const p=this.pwForm;
+ if((p.p1||'').length<8){this.authError='Le mot de passe doit contenir au moins 8 caractères.';return}
+ if(p.p1!==p.p2){this.authError='Les mots de passe ne correspondent pas.';return}
+ const {data,error}=await SB.auth.updateUser({password:p.p1});
+ if(error){this.authError=error.message;return}
+ this.pwForm={p1:'',p2:''};this.recovery=false;await this.startCloudSession(data.user);
+},
+async changePassword(){
+ this.pwMsg='';const p=this.pwForm;
+ if((p.p1||'').length<8){this.flashMsg('Le mot de passe doit contenir au moins 8 caractères.');return}
+ if(p.p1!==p.p2){this.flashMsg('Les mots de passe ne correspondent pas.');return}
+ const {error}=await SB.auth.updateUser({password:p.p1});
+ if(error){this.flashMsg(error.message);return}
+ this.pwForm={p1:'',p2:''};this.pwMsg='Mot de passe mis à jour.';
+},
+async changeRole(p,role){
+ const {error}=await SB.rpc('admin_set_role',{target:p.id,new_role:role});
+ if(error){this.flashMsg(error.message)}else{this.flashMsg('Rôle mis à jour.')}
+ await this.loadAll();
+},
+async logout(){
+ try{if(SB&&this.cloud)await SB.auth.signOut()}catch(e){}
+ try{localStorage.removeItem('tet_current_user')}catch(e){}
+ location.reload();
+},
+async loadAll(){
+ if(!SB||!this.cloud)return;
+ const fr=d=>new Date(d).toLocaleString('fr-FR'),fd=d=>new Date(d).toLocaleDateString('fr-FR');
+ const byId=t=>SB.from(t).select('*').order('id');
+ const byDate=(t,n)=>{let q=SB.from(t).select('*').order('created_at',{ascending:false});return n?q.limit(n):q};
+ const [m,t,p,r,i,n,a,c,pr]=await Promise.all([byId('machines'),byId('tasks'),byId('parts'),byDate('reports'),byDate('incidents'),byDate('notifications'),byDate('audit',100),SB.from('companies').select('settings').limit(1),SB.from('profiles').select('id,name,email,role').order('created_at')]);
+ const bad=[m,t,p,r,i,n,c,pr].find(x=>x.error);
+ if(bad){this.flashMsg('Synchronisation impossible : '+bad.error.message);return}
+ this.machines=(m.data||[]).map(x=>({id:x.id,name:x.name,area:x.area,failures:x.failures,lastIssue:x.last_issue,mtbf:x.mtbf,revision:x.revision,status:x.status}));
+ this.tasks=(t.data||[]).map(x=>({id:x.id,title:x.title,machine:x.machine,technician:x.technician,priority:x.priority,status:x.status}));
+ this.parts=(p.data||[]).map(x=>({id:x.id,name:x.name,ref:x.ref,machine:x.machine,qty:x.qty,min:x.min_qty,price:Number(x.price)||0}));
+ this.reports=(r.data||[]).map(x=>({id:x.id,date:fd(x.created_at),machine:x.machine,type:x.type,technician:x.technician,result:x.result}));
+ this.incidents=(i.data||[]).map(x=>({id:x.id,machine:x.machine,description:x.description,priority:x.priority,author:x.author,date:fr(x.created_at),status:x.status}));
+ this.notifications=(n.data||[]).map(x=>({id:x.id,title:x.title,text:x.text,time:fr(x.created_at),read:x.read}));
+ this.audit=((a&&a.data)||[]).map(x=>({id:x.id,user:x.user_name,action:x.action,date:fr(x.created_at)}));
+ if(c.data&&c.data[0]&&c.data[0].settings)this.settings=c.data[0].settings;
+ this.profiles=pr.data||[];
+ this.$nextTick(()=>lucide.createIcons());
+},
+async w(q){const r=await q.select();if(r.error){this.flashMsg(r.error.message);return false}if(!r.data||!r.data.length){this.flashMsg('Action non autorisée pour votre rôle.');return false}return true},
+saveMachine(){return this.cloud?this.cloud_saveMachine():this.local_saveMachine()},
+savePart(){return this.cloud?this.cloud_savePart():this.local_savePart()},
+saveTask(){return this.cloud?this.cloud_saveTask():this.local_saveTask()},
+submitReport(){return this.cloud?this.cloud_submitReport():this.local_submitReport()},
+submitIncident(){return this.cloud?this.cloud_submitIncident():this.local_submitIncident()},
+markAllRead(){return this.cloud?this.cloud_markAllRead():this.local_markAllRead()},
+saveSettings(){return this.cloud?this.cloud_saveSettings():this.local_saveSettings()},
+resetData(){return this.cloud?this.flashMsg('Réinitialisation indisponible en mode cloud.'):this.local_resetData()},
+log(a){return this.cloud?this.cloud_log(a):this.local_log(a)},
+markRead(n){if(n.read)return;n.read=true;if(this.cloud){SB.from('notifications').update({read:true}).eq('id',n.id).then(r=>{if(r.error)this.flashMsg(r.error.message)})}else this.persist()},
+async cloud_saveMachine(){const f=this.machineForm,row={name:f.name,area:f.area,revision:f.revision||'',status:f.status};
+ const ok=await this.w(this.editingId?SB.from('machines').update(row).eq('id',this.editingId):SB.from('machines').insert(row));if(!ok)return;
+ this.log((this.editingId?'a modifié':'a créé')+' une machine');this.modal=null;await this.loadAll()},
+async cloud_savePart(){const f=this.partForm,row={name:f.name,ref:f.ref,machine:f.machine||'Général',qty:Number(f.qty)||0,min_qty:Number(f.min)||0,price:Number(f.price)||0};
+ const ok=await this.w(this.editingId?SB.from('parts').update(row).eq('id',this.editingId):SB.from('parts').insert(row));if(!ok)return;
+ this.log((this.editingId?'a modifié':'a créé')+' une pièce');this.modal=null;await this.loadAll()},
+async cloud_saveTask(){const f=this.taskForm,row={title:f.title,machine:f.machine||'',technician:f.technician||'',priority:f.priority,status:f.status};
+ const ok=await this.w(this.editingId?SB.from('tasks').update(row).eq('id',this.editingId):SB.from('tasks').insert(row));if(!ok)return;
+ this.log((this.editingId?'a modifié':'a créé')+' une tâche');this.modal=null;await this.loadAll()},
+async cloud_submitReport(){const r=this.report;
+ const ok=await this.w(SB.from('reports').insert({machine:r.machine,type:r.type,technician:this.currentUser.name||this.currentUser.roleName,result:r.result,problem:r.problem||'',actions:r.actions||'',parts_used:r.parts||''}));if(!ok)return;
+ this.reportPreview='Rapport soumis et validé.\n\n'+this.generateReportText();this.log('a soumis un rapport d’intervention');await this.loadAll();this.flashMsg('Rapport soumis et validé.')},
+async cloud_submitIncident(){const i=this.incident;
+ const ok=await this.w(SB.from('incidents').insert({machine:i.machine,description:i.description,priority:i.priority,location:i.location||'',author:this.currentUser.name||this.currentUser.roleName}));if(!ok)return;
+ await SB.from('notifications').insert({title:'Nouveau signalement',text:i.machine+' — '+i.priority});
+ this.incidentMessage='Signalement transmis au superviseur.';this.log('a créé un signalement');this.incident={...i,description:'',location:''};await this.loadAll()},
+async cloud_markAllRead(){const r=await SB.from('notifications').update({read:true}).eq('read',false);if(r.error)this.flashMsg(r.error.message);await this.loadAll()},
+async cloud_saveSettings(){if(this.currentUser.role!=='super_admin'){this.flashMsg('Réservé au super administrateur.');return}
+ const ok=await this.w(SB.from('companies').update({settings:this.settings}).eq('id',this.currentUser.company_id));if(ok)this.flashMsg('Paramètres sauvegardés.')},
+cloud_log(action){const u=this.currentUser?(this.currentUser.name||this.currentUser.roleName):'Système';
+ SB.from('audit').insert({user_name:u,action}).then(r=>{if(!r.error&&this.currentUser&&['super_admin','resp_maint'].includes(this.currentUser.role))this.audit.unshift({id:Date.now(),user:u,action,date:new Date().toLocaleString('fr-FR')})})},
+
+toggleDeviceMode(){this.deviceMode = this.deviceMode === 'pc' ? 'mobile' : 'pc'; this.$nextTick(()=>lucide.createIcons());},
+initials(){return (this.currentUser?.name||this.currentUser?.roleName||'TET').split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase()},
+authorizedTabs(){
+ const role=this.viewAs||this.currentUser?.role; const all=[
+ {id:'dashboard',name:'Dashboard & KPI',short:'Dashboard',icon:'layout-dashboard',roles:['super_admin','resp_maint']},
+ {id:'tasks',name:'Interventions & Tâches',short:'Tâches',icon:'wrench',roles:['super_admin','resp_maint','technician']},
+ {id:'reports',name:'Rapport d’intervention',short:'Rapport',icon:'file-text',roles:['super_admin','resp_maint','technician']},
+ {id:'history',name:'Historique rapports',short:'Historique',icon:'history',roles:['super_admin','resp_maint','technician']},
+ {id:'machines',name:'Équipements & QR',short:'Machines',icon:'cpu',roles:['super_admin','resp_maint','technician']},
+ {id:'analytics',name:'Analytique machines',short:'Analytique',icon:'bar-chart-3',roles:['super_admin','resp_maint']},
+ {id:'inventory',name:'Stock & Pièces',short:'Stock',icon:'package',roles:['super_admin','resp_maint','magasinier']},
+ {id:'incidents',name:'Signalements',short:'Signaler',icon:'triangle-alert',roles:['super_admin','resp_maint','technician']},
+ {id:'ai',name:'Assistant IA',short:'IA',icon:'sparkles',roles:['super_admin','resp_maint','technician','magasinier']},
+ {id:'notifications',name:'Notifications',short:'Alertes',icon:'bell',roles:['super_admin','resp_maint','technician','magasinier']},
+ {id:'audit',name:'Audit & Traçabilité',short:'Audit',icon:'shield-check',roles:['super_admin','resp_maint']},
+ {id:'settings',name:'Paramètres',short:'Paramètres',icon:'settings',roles:['super_admin']}
+ ]; return all.filter(x=>x.roles.includes(role));
+},
+go(id){if(this.authorizedTabs().some(x=>x.id===id)){this.activeTab=id;this.$nextTick(()=>lucide.createIcons())}},
+tabTitle(){return this.authorizedTabs().find(x=>x.id===this.activeTab)?.name||'TET'},
+get unread(){return this.notifications.filter(n=>!n.read).length},
+filteredTasks(){return this.taskFilter==='Tous'?this.tasks:this.tasks.filter(t=>t.status===this.taskFilter)},
+taskStats(){return [{label:'Total tâches',value:this.tasks.length},{label:'En cours',value:this.tasks.filter(t=>t.status==='En cours').length},{label:'En attente',value:this.tasks.filter(t=>t.status==='En attente').length},{label:'Terminées',value:this.tasks.filter(t=>t.status==='Terminées').length}]},
+priorityClass(p){return {'Critique':'bg-red-500/10 text-red-400','Urgent':'bg-orange-500/10 text-orange-400','Normal':'bg-blue-500/10 text-blue-400','Faible':'bg-slate-700 text-slate-300'}[p]||'bg-slate-800 text-slate-300'},
+statusClass(s){return s==='Terminées'?'text-emerald-400':s==='En cours'?'text-amber-400':'text-slate-400'},
+machineStatusClass(s){return s==='Critique'?'bg-red-500/10 text-red-400':s==='Attention'?'bg-amber-500/10 text-amber-400':s==='Normal'?'bg-blue-500/10 text-blue-400':'bg-emerald-500/10 text-emerald-400'},
+partStatus(p){return p.qty<=0?'Rupture':p.qty<=p.min?'À commander':'OK'},
+stockValue(){return this.parts.reduce((a,p)=>a+(Number(p.qty)||0)*(Number(p.price)||0),0).toLocaleString('fr-FR')},
+openMachine(m=null){this.editingId=m?.id||null;this.machineForm=m?{...m}:{name:'',area:'',revision:'',status:'Bon état'};this.modal='machine'},
+local_saveMachine(){if(this.editingId){const i=this.machines.findIndex(m=>m.id===this.editingId);this.machines[i]={...this.machines[i],...this.machineForm}}else{this.machines.push({id:Date.now(),...this.machineForm,failures:0,lastIssue:'Aucune',mtbf:'—'})}this.log((this.editingId?'a modifié':'a créé')+' une machine');this.persist();this.modal=null},
+openPart(p=null){this.editingId=p?.id||null;this.partForm=p?{...p}:{name:'',ref:'',machine:'Général',qty:0,min:0,price:0};this.modal='part'},
+local_savePart(){if(this.editingId){const i=this.parts.findIndex(p=>p.id===this.editingId);this.parts[i]={...this.parts[i],...this.partForm}}else this.parts.push({id:Date.now(),...this.partForm});this.log((this.editingId?'a modifié':'a créé')+' une pièce');this.persist();this.modal=null},
+openTask(t=null){this.editingId=t?.id||null;this.taskForm=t?{...t}:{title:'',machine:this.machines[0]?.name||'',priority:'Normal',status:'En attente',technician:''};this.modal='task'},
+local_saveTask(){if(this.editingId){const i=this.tasks.findIndex(t=>t.id===this.editingId);this.tasks[i]={...this.tasks[i],...this.taskForm}}else this.tasks.push({id:Date.now(),...this.taskForm});this.log((this.editingId?'a modifié':'a créé')+' une tâche');this.persist();this.modal=null},
+modalTitle(){return this.modal==='machine'?(this.editingId?'Modifier la machine':'Nouvelle machine'):this.modal==='part'?(this.editingId?'Modifier la pièce':'Nouvelle pièce'):this.editingId?'Modifier la tâche':'Nouvelle tâche'},
+local_submitReport(){const now=new Date().toLocaleDateString('fr-FR');this.reports.unshift({id:Date.now(),date:now,machine:this.report.machine,type:this.report.type,technician:this.currentUser?.name||this.currentUser?.roleName||'Technicien',result:this.report.result});this.reportPreview='Rapport soumis et validé.\n\n'+this.generateReportText();this.log('a soumis un rapport d’intervention');this.persist();alert('Rapport soumis et validé.')},
+generateReportText(){return `RAPPORT D’INTERVENTION TET\nMachine : ${this.report.machine}\nType : ${this.report.type}\nProblème : ${this.report.problem||'Non renseigné'}\nActions : ${this.report.actions||'Non renseigné'}\nPièces : ${this.report.parts||'Aucune'}\nRésultat : ${this.report.result}`},
+generateReport(){this.reportPreview='Édition technique automatique…\n\n'+this.generateReportText()},
+copyReport(){navigator.clipboard?.writeText(this.reportPreview);alert('Rapport copié.')},
+local_submitIncident(){this.incidents.unshift({id:Date.now(),...this.incident,author:this.currentUser?.name||this.currentUser?.roleName||'Utilisateur',date:'À l’instant',status:'Nouveau'});this.notifications.unshift({id:Date.now(),title:'Nouveau signalement',text:this.incident.machine+' — '+this.incident.priority,time:'À l’instant',read:false});this.incidentMessage='Signalement transmis au superviseur.';this.log('a créé un signalement');this.persist();this.incident={...this.incident,description:'',location:''}},
+diagnoseIncident(){this.incidentMessage='Diagnostic IA en cours… Analyse des symptômes, criticité et premières vérifications recommandées.'},
+analyzeMachine(m){this.go('ai');this.aiOutput=`Analyse TET — ${m.name}\n\nCriticité : ${m.status}\nPannes enregistrées : ${m.failures}\nMTBF estimé : ${m.mtbf}\nRévision : ${m.revision}\n\nRecommandation : vérifier l’historique des interventions, contrôler les organes mécaniques/électriques concernés et programmer une action préventive si la tendance se confirme.`},
+runAI(a){this.go('ai');const out={pump:'Pompe P-03 : priorité critique. Vérifier fuite, alignement, roulements, pression hydraulique, température et vibration. Sécuriser l’équipement avant intervention.',preventive:'Plan préventif : prioriser P-03 (révision en retard), C-12 (usure courroie), puis CP-01. Contrôler lubrification, serrages, transmissions et mesures vibratoires.',noise:'Diagnostic bruit : localiser la fréquence et le régime, vérifier roulements, cavitation, désalignement, jeu mécanique et fixation. Comparer avec les mesures précédentes.',stock:'Stock : commander en priorité FUS-32A, SKF-35477, HF-230, HV46-5L et VB-A42 selon les seuils actuels.',weekly:'Rapport hebdomadaire : 24 pannes ce mois-ci, MTTR 2 h 18, disponibilité 94,8 %. P-03 est l’actif prioritaire et plusieurs références sont sous seuil.'};this.aiOutput=out[a]||'Analyse terminée.'},
+askAI(){const q=this.aiQuestion.trim();if(!q)return;this.aiOutput=`Question : ${q}\n\nRéponse TET : pour un diagnostic industriel fiable, commencer par la sécurité et la consignation, identifier les symptômes mesurables, vérifier les causes mécaniques et électriques possibles, puis confirmer par mesures avant remise en service.\n\nMode prototype : cette réponse est locale et ne remplace pas un moteur IA connecté.`;this.aiQuestion=''},
+local_markAllRead(){this.notifications.forEach(n=>n.read=true);this.persist()},
+searchAll(){const q=this.globalSearch.toLowerCase().trim();if(!q)return;this.searchResults=[];this.machines.forEach(x=>{if(JSON.stringify(x).toLowerCase().includes(q))this.searchResults.push({type:'Machine',id:x.id,title:x.name,meta:x.area,tab:'machines'})});this.tasks.forEach(x=>{if(JSON.stringify(x).toLowerCase().includes(q))this.searchResults.push({type:'Intervention',id:x.id,title:x.title,meta:x.machine,tab:'tasks'})});this.parts.forEach(x=>{if(JSON.stringify(x).toLowerCase().includes(q))this.searchResults.push({type:'Pièce',id:x.id,title:x.name,meta:x.ref+' · '+x.machine,tab:'inventory'})});this.go('search')},
+local_log(action){this.audit.unshift({id:Date.now(),user:this.currentUser?.name||this.currentUser?.roleName||'Système',action,date:new Date().toLocaleString('fr-FR')});this.persist()},
+local_saveSettings(){this.persist();alert('Paramètres sauvegardés.')},
+exportData(){const data={machines:this.machines,tasks:this.tasks,parts:this.parts,reports:this.reports,incidents:this.incidents,notifications:this.notifications,audit:this.audit,settings:this.settings};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='TET_export_'+new Date().toISOString().slice(0,10)+'.json';a.click();URL.revokeObjectURL(a.href)},
+local_resetData(){if(confirm('Réinitialiser les données locales de TET ?')){localStorage.removeItem('tet_merged_data');location.reload()}}
+}
+}
+</script>
+</body>
+</html>
