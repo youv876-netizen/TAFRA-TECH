@@ -89,6 +89,7 @@ brand:{500:'#f97316',600:'#ea580c',700:'#c2410c'}
             <div class="relative"><input id="li-pw" class="input mt-1 pr-20" :type="showPwd?'text':'password'" x-model="loginPassword" required autocomplete="current-password" placeholder="••••••••"><button type="button" @click="showPwd=!showPwd" class="absolute right-2 top-3.5 text-[10px] text-slate-400 hover:text-white" x-text="showPwd?'Masquer':'Afficher'"></button></div></div>
           <button class="btn btn-brand w-full py-3" :disabled="authBusy" x-text="authBusy?'Connexion…':'Se connecter →'"></button>
           <p class="text-[11px] text-slate-500 text-center"><button type="button" @click="forgot()" class="text-slate-400 hover:text-white">Mot de passe oublié ?</button></p>
+          <p class="text-[10px] text-slate-600 text-center"><a href="cgu.html" target="_blank" rel="noopener" class="hover:text-slate-300">Conditions d’utilisation</a> · <a href="confidentialite.html" target="_blank" rel="noopener" class="hover:text-slate-300">Confidentialité</a></p>
           <p class="text-[11px] text-slate-500 text-center">Pas encore de compte ? <button type="button" @click="setMode('signup')" class="text-brand-500 font-bold">Créer un compte</button></p>
         </form>
 
@@ -101,6 +102,7 @@ brand:{500:'#f97316',600:'#ea580c',700:'#c2410c'}
             <div><label class="text-xs text-slate-300" for="su-pw2">Confirmation</label><input id="su-pw2" class="input mt-1" :type="showPwd?'text':'password'" x-model="signup.confirm" required autocomplete="new-password" placeholder="••••••••"></div>
           </div>
           <label class="flex items-center gap-2 text-[11px] text-slate-400"><input type="checkbox" x-model="showPwd"> Afficher les mots de passe</label>
+          <label class="flex items-start gap-2 text-[11px] text-slate-400"><input id="su-accept" type="checkbox" x-model="accept" class="mt-0.5" required><span>J’accepte les <a href="cgu.html" target="_blank" rel="noopener" class="text-brand-500 underline">conditions d’utilisation</a> et la <a href="confidentialite.html" target="_blank" rel="noopener" class="text-brand-500 underline">politique de confidentialité</a>.</span></label>
           <button class="btn btn-brand w-full py-3" :disabled="authBusy" x-text="authBusy?'Création…':'Créer mon compte →'"></button>
           <p class="text-[11px] text-slate-500 text-center">Déjà un compte ? <button type="button" @click="setMode('login')" class="text-brand-500 font-bold">Se connecter</button></p>
         </form>
@@ -362,7 +364,7 @@ brand:{500:'#f97316',600:'#ea580c',700:'#c2410c'}
 let SB=null;
 function tetApp(){
 return {
-loginEmail:'',loginPassword:'',currentUser:null,authMode:'login',authError:'',authInfo:'',authBusy:false,showPwd:false,recovery:false,viewAs:'',cloud:false,onboardMode:'join',joinCode:'',companyName:'',inviteCode:'',flash:'',profiles:[],pwForm:{p1:'',p2:''},pwMsg:'',signup:{name:'',email:'',password:'',confirm:''},activeTab:'dashboard',globalSearch:'',searchResults:[],taskFilter:'Tous',modal:null,editingId:null,
+loginEmail:'',loginPassword:'',currentUser:null,authMode:'login',authError:'',authInfo:'',authBusy:false,showPwd:false,recovery:false,viewAs:'',cloud:false,onboardMode:'join',accept:false,joinCode:'',companyName:'',inviteCode:'',flash:'',profiles:[],pwForm:{p1:'',p2:''},pwMsg:'',signup:{name:'',email:'',password:'',confirm:''},activeTab:'dashboard',globalSearch:'',searchResults:[],taskFilter:'Tous',modal:null,editingId:null,
 reportPreview:'',incidentMessage:'',aiOutput:'',aiQuestion:'',deviceMode:'pc',
 users:[
  {email:'tech@tet.dz',roleName:'Technicien Maintenance',role:'technician',defaultTab:'tasks'},
@@ -504,6 +506,7 @@ async signUp(){
  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){this.authError='Adresse e-mail invalide.';return}
  if((f.password||'').length<8){this.authError='Le mot de passe doit contenir au moins 8 caractères.';return}
  if(f.password!==f.confirm){this.authError='Les mots de passe ne correspondent pas.';return}
+ if(!this.accept){this.authError='Acceptez les conditions d’utilisation pour créer votre compte.';return}
  this.authBusy=true;
  try{const {data,error}=await SB.auth.signUp({email,password:f.password,options:{data:{name:f.name.trim()}}});
   if(error){this.authError=/registered|exists/i.test(error.message)?'Un compte existe déjà avec cet e-mail.':error.message;return}
